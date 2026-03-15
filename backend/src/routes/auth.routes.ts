@@ -1,0 +1,48 @@
+import { Router } from 'express';
+import { body } from 'express-validator';
+import * as authController from '../controllers/auth.controller';
+import { authenticate } from '../middleware/auth';
+
+const router = Router();
+
+// Public routes
+router.post(
+  '/register',
+  [
+    body('email').isEmail().normalizeEmail(),
+    body('password').isLength({ min: 8 }),
+    body('firstName').trim().notEmpty(),
+    body('lastName').trim().notEmpty(),
+  ],
+  authController.register
+);
+
+router.post(
+  '/login',
+  [
+    body('email').isEmail().normalizeEmail(),
+    body('password').notEmpty(),
+  ],
+  authController.login
+);
+
+// Protected routes
+router.get('/profile', authenticate, authController.getProfile);
+
+router.post('/setup-2fa', authenticate, authController.setupTwoFactor);
+
+router.post(
+  '/enable-2fa',
+  authenticate,
+  [body('token').isLength({ min: 6, max: 6 })],
+  authController.enableTwoFactor
+);
+
+router.post(
+  '/disable-2fa',
+  authenticate,
+  [body('token').isLength({ min: 6, max: 6 })],
+  authController.disableTwoFactor
+);
+
+export default router;

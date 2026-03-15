@@ -1,0 +1,604 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==========================================
+// USER MANAGEMENT & AUTHENTICATION
+// ==========================================
+
+enum UserRole {
+  PLATFORM_ADMIN   // Platform owner - sees all firms, manages everything
+  SUPER_ADMIN      // Chamber principal - manages their firm
+  SENIOR_PARTNER   // See all, delete, full access within firm
+  PARTNER          // Most access except deletion
+  ASSOCIATE        // Upload, edit, comment
+  SECRETARY        // Upload, schedule, view
+  INTERN           // View-only (limited cases)
+  CLIENT           // View selected documents only
+}
+
+model User {
+  id                String      @id @default(uuid())
+  email             String      @unique
+  password          String
+  firstName         String
+  lastName          String
+  phone             String?
+  role              UserRole
+  isActive          Boolean     @default(true)
+  isApproved        Boolean     @default(false)
+  emailVerified     Boolean     @default(false)
+  
+  // 2FA
+  twoFactorEnabled  Boolean     @default(false)
+  twoFactorSecret   String?
+  
+  // Multi-branch support
+  firmId            String?
+  firm              Firm?       @relation(fields: [firmId], references: [id], onDelete: Cascade)
+  branchId          String?
+  branch            Branch?     @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  
+  // Relations
+  assignedCases     CaseLawyer[]
+  uploadedDocuments Document[]  @relation("DocumentUploader")
+  auditLogs         AuditLog[]
+  createdCases      Case[]      @relation("CaseCreator")
+  clientProfile     Client?
+  supportTickets    SupportTicket[]
+  notifications     Notification[]
+  
+  // Timestamps
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  lastLoginAt       DateTime?
+  lastLoginIp       String?
+  
+  @@index([email])
+  @@index([firmId])
+  @@index([branchId])
+  @@map("users")
+}
+
+// ==========================================
+// ORGANIZATIONAL STRUCTURE
+// ==========================================
+
+model Firm {
+  id              String      @id @default(uuid())
+  name            String
+  inviteCode      String      @unique
+  registrationNo  String?     @unique
+  address         String?
+  city            String?
+  state           String?
+  country         String      @default("Nigeria")
+  phone           String?
+  email           String?
+  website         String?
+  logo            String?     // URL to logo
+  isActive        Boolean     @default(true)
+  
+  // Relations
+  branches        Branch[]
+  users           User[]
+  clients         Client[]
+  cases           Case[]
+  
+  // Settings
+  defaultDeadlineReminder Int @default(3) // Days before deadline
+  
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  
+  @@map("firms")
+}
+
+model Branch {
+  id              String      @id @default(uuid())
+  name            String
+  code            String      // Branch code (e.g., "HQ", "LAG", "ABJ")
+  address         String?
+  city            String?
+  state           String?
+  phone           String?
+  email           String?
+  isHeadquarters  Boolean     @default(false)
+  isActive        Boolean     @default(true)
+  
+  firmId          String
+  firm            Firm        @relation(fields: [firmId], references: [id], onDelete: Cascade)
+  
+  // Relations
+  users           User[]
+  cases           Case[]
+  
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  
+  @@unique([firmId, code])
+  @@index([firmId])
+  @@map("branches")
+}
+
+// ==========================================
+// CLIENT MANAGEMENT
+// ==========================================
+
+enum ClientType {
+  INDIVIDUAL
+  CORPORATE
+  GOVERNMENT
+  NGO
+}
+
+model Client {
+  id              String      @id @default(uuid())
+  
+  // For individual clients
+  firstName       String?
+  lastName        String?
+  
+  // For corporate clients
+  companyName     String?
+  
+  clientType      ClientType  @default(INDIVIDUAL)
+  email           String?
+  phone           String?
+  alternatePhone  String?
+  address         String?
+  city            String?
+  state           String?
+  
+  // User account (optional - for client portal access)
+  userId          String?     @unique
+  user            User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  
+  firmId          String
+  firm            Firm        @relation(fields: [firmId], references: [id], onDelete: Cascade)
+  
+  // Relations
+  cases           Case[]
+  
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  
+  @@index([firmId])
+  @@index([email])
+  @@map("clients")
+}
+
+// ==========================================
+// CASE MANAGEMENT (Core Entity)
+// ==========================================
+
+enum CaseType {
+  CIVIL
+  CRIMINAL
+  CORPORATE
+  FAMILY
+  LABOUR
+  CONSTITUTIONAL
+  INTELLECTUAL_PROPERTY
+  REAL_ESTATE
+  TAX
+  ARBITRATION
+  OTHER
+}
+
+enum CaseStatus {
+  PRE_TRIAL
+  ONGOING
+  JUDGMENT
+  APPEAL
+  CLOSED
+  ARCHIVED
+}
+
+model Case {
+  id                String      @id @default(uuid())
+  
+  // Case identification
+  title             String      // e.g., "Adeyemi vs Zenith Bank"
+  suitNumber        String?     // e.g., "FHC/L/CS/2024/123"
+  caseType          CaseType
+  status            CaseStatus  @default(PRE_TRIAL)
+  
+  // Court details
+  courtName         String?
+  courtLevel        String?     // e.g., "High Court", "Court of Appeal", "Supreme Court"
+  courtLocation     String?
+  judgeName         String?
+  
+  // Parties
+  plaintiff         String?
+  defendant         String?
+  opposingCounsel   String?     // Name of opposing counsel
+  
+  // Description
+  description       String?     @db.Text
+  caseNumber        String?     // Internal case number
+  
+  // Client
+  clientId          String
+  client            Client      @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  
+  // Organization
+  firmId            String
+  firm              Firm        @relation(fields: [firmId], references: [id], onDelete: Cascade)
+  branchId          String?
+  branch            Branch?     @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  
+  // Creator
+  createdById       String
+  createdBy         User        @relation("CaseCreator", fields: [createdById], references: [id])
+  
+  // Relations
+  assignedLawyers   CaseLawyer[]
+  documents         Document[]
+  deadlines         Deadline[]
+  hearings          Hearing[]
+  auditLogs         AuditLog[]
+  
+  // Timestamps
+  filingDate        DateTime?
+  closedDate        DateTime?
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  
+  @@index([firmId])
+  @@index([branchId])
+  @@index([clientId])
+  @@index([suitNumber])
+  @@index([status])
+  @@map("cases")
+}
+
+// Join table for Case-Lawyer many-to-many relationship
+model CaseLawyer {
+  id          String      @id @default(uuid())
+  caseId      String
+  case        Case        @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  lawyerId    String
+  lawyer      User        @relation(fields: [lawyerId], references: [id], onDelete: Cascade)
+  role        String?     // e.g., "Lead Counsel", "Co-counsel"
+  assignedAt  DateTime    @default(now())
+  
+  @@unique([caseId, lawyerId])
+  @@index([caseId])
+  @@index([lawyerId])
+  @@map("case_lawyers")
+}
+
+// ==========================================
+// DOCUMENT MANAGEMENT
+// ==========================================
+
+enum DocumentType {
+  COMPLAINT
+  MOTION
+  BRIEF
+  AFFIDAVIT
+  EXHIBIT
+  PLEADING
+  DISCOVERY_REQUEST
+  DISCOVERY_RESPONSE
+  DEPOSITION
+  SUBPOENA
+  COURT_ORDER
+  JUDGMENT
+  APPEAL
+  CONTRACT
+  CORRESPONDENCE
+  INVOICE
+  RECEIPT
+  EVIDENCE
+  OTHER
+}
+
+enum DocumentStatus {
+  DRAFT
+  READY_TO_FILE
+  FILED
+  SERVED
+  REJECTED
+}
+
+model Document {
+  id                String          @id @default(uuid())
+  
+  // Basic info
+  title             String
+  description       String?         @db.Text
+  documentType      DocumentType
+  status            DocumentStatus  @default(DRAFT)
+  
+  // File details
+  fileName          String
+  filePath          String          // Path to stored file
+  fileSize          Int             // in bytes
+  mimeType          String
+  
+  // Filing details
+  isFiled           Boolean         @default(false)
+  filedDate         DateTime?
+  filedBy           String?         // Name of person who filed
+  proofOfFiling     String?         // Path to stamped copy/receipt
+  courtStamped      Boolean         @default(false)
+  
+  // Related dates
+  relatedHearingDate DateTime?
+  
+  // Tags and metadata
+  tags              String[]        // e.g., ["urgent", "exhibit-a"]
+  
+  // Case relation
+  caseId            String
+  case              Case            @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  
+  // Uploader
+  uploadedById      String
+  uploadedBy        User            @relation("DocumentUploader", fields: [uploadedById], references: [id])
+  
+  // Version control
+  version           Int             @default(1)
+  isCurrentVersion  Boolean         @default(true)
+  parentDocumentId  String?         // Reference to original document
+  versions          DocumentVersion[]
+  
+  // Audit
+  auditLogs         AuditLog[]
+  
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  
+  @@index([caseId])
+  @@index([documentType])
+  @@index([status])
+  @@index([uploadedById])
+  @@map("documents")
+}
+
+// Document version history
+model DocumentVersion {
+  id                String      @id @default(uuid())
+  
+  documentId        String
+  document          Document    @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  
+  version           Int
+  fileName          String
+  filePath          String
+  fileSize          Int
+  changeDescription String?     @db.Text
+  
+  createdById       String
+  createdAt         DateTime    @default(now())
+  
+  @@index([documentId])
+  @@map("document_versions")
+}
+
+// ==========================================
+// DEADLINE & HEARING MANAGEMENT
+// ==========================================
+
+enum DeadlineType {
+  FILING_DEADLINE
+  RESPONSE_DEADLINE
+  HEARING_DATE
+  JUDGMENT_DATE
+  APPEAL_DEADLINE
+  SUBMISSION_DEADLINE
+  OTHER
+}
+
+enum DeadlineStatus {
+  PENDING
+  COMPLETED
+  MISSED
+  EXTENDED
+}
+
+model Deadline {
+  id                String          @id @default(uuid())
+  
+  title             String
+  description       String?         @db.Text
+  deadlineType      DeadlineType
+  status            DeadlineStatus  @default(PENDING)
+  
+  dueDate           DateTime
+  completedDate     DateTime?
+  
+  // Reminders
+  reminderEnabled   Boolean         @default(false)
+  reminderSent      Boolean         @default(false)
+  reminderDays      Int[]           @default([3]) // Days before to remind (array for multiple reminders)
+  
+  // Related case
+  caseId            String
+  case              Case            @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  
+  @@index([caseId])
+  @@index([dueDate])
+  @@index([status])
+  @@map("deadlines")
+}
+
+model Hearing {
+  id                String      @id @default(uuid())
+  
+  title             String      // e.g., "Hearing on Motion for Stay"
+  hearingDate       DateTime
+  courtRoom         String?
+  judgeName         String?
+  
+  notes             String?     @db.Text
+  outcome           String?     @db.Text
+  nextHearingDate   DateTime?
+  
+  // Reminders
+  reminderEnabled   Boolean     @default(true)
+  reminderSent      Boolean     @default(false)
+  reminderDays      Int[]       @default([1, 3, 7]) // Days before to remind (array for multiple reminders)
+  
+  // Related case
+  caseId            String
+  case              Case        @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  
+  @@index([caseId])
+  @@index([hearingDate])
+  @@map("hearings")
+}
+
+// ==========================================
+// AUDIT TRAIL
+// ==========================================
+
+enum AuditAction {
+  CREATE
+  READ
+  UPDATE
+  DELETE
+  UPLOAD
+  DOWNLOAD
+  SHARE
+  LOGIN
+  LOGOUT
+  FILED
+  UNFILED
+}
+
+model AuditLog {
+  id          String      @id @default(uuid())
+  
+  action      AuditAction
+  entityType  String      // e.g., "Document", "Case", "User"
+  entityId    String
+  
+  description String?     @db.Text
+  metadata    Json?       // Additional context (old values, new values, etc.)
+  
+  ipAddress   String?
+  userAgent   String?
+  
+  // User who performed the action
+  userId      String?
+  user        User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  
+  // Optional relations
+  caseId      String?
+  case        Case?       @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  documentId  String?
+  document    Document?   @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime    @default(now())
+  
+  @@index([userId])
+  @@index([caseId])
+  @@index([documentId])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model SupportTicket {
+  id          String            @id @default(uuid())
+  
+  subject     String
+  message     String            @db.Text
+  priority    SupportPriority   @default(MEDIUM)
+  status      SupportStatus     @default(OPEN)
+  
+  // User who submitted the ticket
+  userId      String
+  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Response from support team
+  response    String?           @db.Text
+  respondedAt DateTime?
+  respondedBy String?
+  
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  
+  @@index([userId])
+  @@index([status])
+  @@map("support_tickets")
+}
+
+enum SupportPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum SupportStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+// ==========================================
+// NOTIFICATION SYSTEM
+// ==========================================
+
+enum NotificationType {
+  DEADLINE_REMINDER    // Deadline approaching
+  DEADLINE_OVERDUE     // Deadline passed
+  SUPPORT_TICKET       // Support ticket created/updated
+  USER_APPROVAL        // New user needs approval
+  CASE_ASSIGNED        // Case assigned to user
+  DOCUMENT_UPLOADED    // New document uploaded
+  HEARING_REMINDER     // Hearing coming up
+  GENERAL              // General notification
+}
+
+model Notification {
+  id          String            @id @default(uuid())
+  
+  type        NotificationType
+  title       String
+  message     String            @db.Text
+  
+  // Link to related entity
+  entityType  String?           // e.g., "Case", "Deadline", "SupportTicket"
+  entityId    String?           // ID of the related entity
+  
+  // Recipient
+  userId      String
+  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Status
+  isRead      Boolean           @default(false)
+  readAt      DateTime?
+  
+  // Email notification
+  emailSent   Boolean           @default(false)
+  emailSentAt DateTime?
+  
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  
+  @@index([userId, isRead])
+  @@index([type])
+  @@index([createdAt])
+  @@map("notifications")
+}

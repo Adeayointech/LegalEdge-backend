@@ -1,0 +1,221 @@
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { documentAPI } from '../lib/api';
+import { Download, FileText, Trash2, Upload, Clock, CheckCircle, XCircle } from 'lucide-react';
+
+interface DocumentListProps {
+  caseId: string;
+}
+
+const STATUS_COLORS = {
+  DRAFT: 'bg-gray-100 text-gray-800',
+  READY_TO_FILE: 'bg-yellow-100 text-yellow-800',
+  FILED: 'bg-green-100 text-green-800',
+  SERVED: 'bg-blue-100 text-blue-800',
+  REJECTED: 'bg-red-100 text-red-800',
+};
+
+const STATUS_ICONS = {
+  DRAFT: Clock,
+  READY_TO_FILE: CheckCircle,
+  FILED: CheckCircle,
+  SERVED: CheckCircle,
+  REJECTED: XCircle,
+};
+
+export function DocumentList({ caseId }: DocumentListProps) {
+  const queryClient = useQueryClient();
+  const [filter, setFilter] = useState({
+    documentType: '',
+    status: '',
+    search: '',
+  });
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['documents', caseId, filter],
+    queryFn: () => documentAPI.getAll({
+      caseId,
+      ...filter,
+      limit: 100,
+    }),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: documentAPI.delete,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['documents'] });
+      queryClient.invalidateQueries({ queryKey: ['case', caseId] });
+    },
+    onError: (error: any) => {
+      const errorMsg = error.response?.data?.error || 'Failed to delete document';
+      alert(`Error: ${errorMsg}`);
+    },
+  });
+
+  const handleDownload = async (id: string, fileName: string) => {
+    try {
+      const response = await documentAPI.download(id);
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', fileName);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Download failed:', error);
+    }
+  };
+
+  const handleDelete = (id: string, title: string) => {
+    if (window.confirm(`Are you sure you want to delete "${title}"?`)) {
+      deleteMutation.mutate(id);
+    }
+  };
+
+  const documents = data?.data?.documents || [];
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+  };
+
+  const formatDate = (date: string) => {
+    return new Date(date).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+  };
+
+  if (isLoading) {
+    return <div className="text-center py-8 text-gray-500">Loading documents...</div>;
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Filters */}
+      <div className="flex gap-3">
+        <input
+          type="text"
+          placeholder="Search documents..."
+          value={filter.search}
+          onChange={(e) => setFilter({ ...filter, search: e.target.value })}
+          className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+        />
+        <select
+          value={filter.documentType}
+          onChange={(e) => setFilter({ ...filter, documentType: e.target.value })}
+          className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+        >
+          <option value="">All Types</option>
+          <option value="COMPLAINT">Complaint</option>
+          <option value="MOTION">Motion</option>
+          <option value="BRIEF">Brief</option>
+          <option value="AFFIDAVIT">Affidavit</option>
+          <option value="EXHIBIT">Exhibit</option>
+          <option value="PLEADING">Pleading</option>
+          <option value="COURT_ORDER">Court Order</option>
+          <option value="JUDGMENT">Judgment</option>
+          <option value="CONTRACT">Contract</option>
+          <option value="OTHER">Other</option>
+        </select>
+        <select
+          value={filter.status}
+          onChange={(e) => setFilter({ ...filter, status: e.target.value })}
+          className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+        >
+          <option value="">All Statuses</option>
+          <option value="DRAFT">Draft</option>
+          <option value="READY_TO_FILE">Ready to File</option>
+          <option value="FILED">Filed</option>
+          <option value="SERVED">Served</option>
+          <option value="REJECTED">Rejected</option>
+        </select>
+      </div>
+
+      {/* Document List */}
+      {documents.length === 0 ? (
+        <div className="text-center py-12 bg-gray-50 rounded-lg">
+          <FileText className="w-12 h-12 mx-auto text-gray-400 mb-3" />
+          <p className="text-gray-600">No documents found</p>
+          <p className="text-sm text-gray-500 mt-1">Upload your first document to get started</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {documents.map((doc: any) => {
+            const StatusIcon = STATUS_ICONS[doc.status as keyof typeof STATUS_ICONS];
+            const currentVersion = doc.versions?.[0]?.versionNumber || 1;
+            
+            return (
+              <div
+                key={doc.id}
+                className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition"
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex items-start gap-3 flex-1">
+                    <FileText className="w-8 h-8 text-blue-600 flex-shrink-0 mt-1" />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h4 className="font-semibold text-gray-900 truncate">
+                          {doc.title}
+                        </h4>
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[doc.status as keyof typeof STATUS_COLORS]}`}>
+                          {doc.status.replace(/_/g, ' ')}
+                        </span>
+                        {currentVersion > 1 && (
+                          <span className="px-2 py-0.5 bg-purple-100 text-purple-800 rounded-full text-xs font-medium">
+                            v{currentVersion}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm text-gray-600 mb-2">{doc.documentType.replace(/_/g, ' ')}</p>
+                      {doc.description && (
+                        <p className="text-sm text-gray-500 mb-2">{doc.description}</p>
+                      )}
+                      <div className="flex items-center gap-4 text-xs text-gray-500">
+                        <span>{doc.fileName}</span>
+                        <span>{formatFileSize(doc.fileSize)}</span>
+                        <span>Uploaded {formatDate(doc.createdAt)}</span>
+                        <span>by {doc.uploadedBy.firstName} {doc.uploadedBy.lastName}</span>
+                      </div>
+                      {doc.filedDate && (
+                        <div className="mt-2 text-xs text-gray-600">
+                          <strong>Filed:</strong> {formatDate(doc.filedDate)}
+                          {/* Filing number not available */}
+                          {doc.filedBy && ` • by ${doc.filedBy}`}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Actions */}
+                  <div className="flex items-center gap-2 ml-4">
+                    <button
+                      onClick={() => handleDownload(doc.id, doc.fileName)}
+                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-md transition"
+                      title="Download"
+                    >
+                      <Download className="w-5 h-5" />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(doc.id, doc.title)}
+                      className="p-2 text-red-600 hover:bg-red-50 rounded-md transition"
+                      title="Delete"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
