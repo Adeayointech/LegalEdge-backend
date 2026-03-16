@@ -1,5 +1,17 @@
 import { PrismaClient } from '@prisma/client';
-
+// Check if DATABASE_URL is set
+if (!process.env.DATABASE_URL) {
+  console.error('❌ CRITICAL ERROR: DATABASE_URL environment variable is not set!');
+  console.error('');
+  console.error('📋 To fix this in Railway:');
+  console.error('  1. Go to Railway Dashboard');
+  console.error('  2. Click "+ New" → "Database" → "PostgreSQL"');
+  console.error('  3. Wait for database to provision (2 minutes)');
+  console.error('  4. DATABASE_URL will be automatically set');
+  console.error('  5. Run: npx prisma migrate deploy');
+  console.error('');
+  process.exit(1);
+}
 const prisma = new PrismaClient({
   log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
   datasources: {
