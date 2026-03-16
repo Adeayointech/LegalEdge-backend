@@ -121,8 +121,8 @@ async function startServer() {
     console.log('✅ Database connected successfully');
     await prisma.$disconnect();
     
-    // Start Express server
-    app.listen(PORT, () => {
+    // Start Express server - bind to 0.0.0.0 for Railway
+    app.listen(PORT, '0.0.0.0', () => {
       console.log(`🚀 Server running on port ${PORT}`);
       console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
       console.log(`🌐 CORS allowed origins: ${allowedOrigins.join(', ')}`);
