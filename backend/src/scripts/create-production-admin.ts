@@ -38,7 +38,6 @@ async function createProductionAdmin() {
         lastName: adminLastName,
         role: 'PLATFORM_ADMIN',
         isApproved: true,
-        phoneNumber: '+1234567890',
       },
     });
 
