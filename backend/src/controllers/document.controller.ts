@@ -319,7 +319,7 @@ export const updateDocumentStatus = async (req: AuthRequest, res: Response) => {
         status,
         filedDate: filedDate ? new Date(filedDate) : undefined,
         filedBy,
-        proofOfFilingPath,
+        proofOfFiling: proofOfFilingPath,
       },
       include: {
         case: {

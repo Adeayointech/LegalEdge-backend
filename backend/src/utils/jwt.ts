@@ -5,14 +5,17 @@ const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
 
 export interface JWTPayload {
   userId: string;
+  id?: string;
   email: string;
   role: string;
   firmId?: string;
   branchId?: string;
+  firstName?: string;
+  lastName?: string;
 }
 
 export const generateToken = (payload: JWTPayload): string => {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+  return jwt.sign(payload as any, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN } as any);
 };
 
 export const verifyToken = (token: string): JWTPayload => {

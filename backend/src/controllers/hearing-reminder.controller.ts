@@ -53,16 +53,9 @@ export const sendTestHearingReminder = async (req: AuthRequest, res: Response) =
       const lawyer = assignment.lawyer;
       try {
         const sent = await sendHearingReminder(
+          hearing,
           lawyer.email,
           `${lawyer.firstName} ${lawyer.lastName}`,
-          {
-            title: hearing.title,
-            hearingDate: hearing.hearingDate,
-            courtRoom: hearing.courtRoom || 'TBD',
-            judgeName: hearing.judgeName || 'TBD',
-            caseTitle: hearing.case.title,
-            suitNumber: hearing.case.suitNumber,
-          },
           daysUntilHearing
         );
         results.push({ email: lawyer.email, sent });
