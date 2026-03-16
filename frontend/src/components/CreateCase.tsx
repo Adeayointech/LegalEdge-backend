@@ -91,7 +91,7 @@ export function CreateCase() {
           };
 
       const response = await createClientMutation.mutateAsync(newClientData);
-      setFormData({ ...formData, clientId: response.id });
+      setFormData({ ...formData, clientId: (response as any).data?.id || (response as any).id });
       setClientSearch('');
       setShowClientDropdown(false);
       setError('');
