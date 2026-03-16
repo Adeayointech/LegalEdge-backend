@@ -7,6 +7,7 @@
     "dev": "tsx watch src/index.ts",
     "build": "prisma generate && tsc --project tsconfig.build.json",
     "start": "node dist/index.js",
+    "diagnostics": "tsx src/diagnostics.ts",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate deploy",
     "prisma:studio": "prisma studio"

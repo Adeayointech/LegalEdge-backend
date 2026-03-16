@@ -110,12 +110,39 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 // Start server
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
-  
-  // Initialize cron jobs for deadline reminders
-  initializeSchedulers();
-});
+async function startServer() {
+  try {
+    // Check database connection
+    const { PrismaClient } = await import('@prisma/client');
+    const prisma = new PrismaClient();
+    
+    console.log('🔍 Checking database connection...');
+    await prisma.$connect();
+    console.log('✅ Database connected successfully');
+    await prisma.$disconnect();
+    
+    // Start Express server
+    app.listen(PORT, () => {
+      console.log(`🚀 Server running on port ${PORT}`);
+      console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
+      console.log(`🌐 CORS allowed origins: ${allowedOrigins.join(', ')}`);
+      
+      // Initialize cron jobs for deadline reminders
+      try {
+        initializeSchedulers();
+        console.log('⏰ Schedulers initialized');
+      } catch (schedulerError) {
+        console.error('⚠️  Failed to initialize schedulers:', schedulerError);
+        // Don't crash the server if schedulers fail
+      }
+    });
+  } catch (error) {
+    console.error('❌ Failed to start server:', error);
+    console.error('Stack:', error instanceof Error ? error.stack : error);
+    process.exit(1);
+  }
+}
+
+startServer();
 
 export default app;
