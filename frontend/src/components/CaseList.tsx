@@ -211,6 +211,7 @@ export function CaseList() {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </div>
