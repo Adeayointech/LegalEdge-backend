@@ -52,11 +52,11 @@ export function CaseList() {
   const cases = data?.data?.cases || [];
 
   return (
-    <div className="space-y-6 p-8 bg-gray-50 min-h-screen">
-      <div className="flex justify-between items-center">
+    <div className="space-y-6 p-4 sm:p-6 lg:p-8 bg-gray-50 min-h-screen">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
-          <h2 className="text-4xl font-bold text-gray-900 heading-font">Cases</h2>
-          <p className="text-gray-600 mt-1">Manage and track all your legal cases</p>
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 heading-font">Cases</h2>
+          <p className="text-sm sm:text-base text-gray-600 mt-1">Manage and track all your legal cases</p>
         </div>
         {['SENIOR_PARTNER', 'PARTNER', 'ASSOCIATE'].includes(user?.role || '') && (
           <Link
@@ -135,6 +135,7 @@ export function CaseList() {
         </div>
       ) : (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200 table-professional">
             <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
               <tr>

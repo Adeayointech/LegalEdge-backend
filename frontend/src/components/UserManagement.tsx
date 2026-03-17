@@ -267,41 +267,41 @@ export function UserManagement() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-lg shadow p-4">
-          <div className="flex items-center justify-between">
+      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+        <div className="bg-white rounded-lg shadow p-3 sm:p-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between gap-2 sm:gap-0">
             <div>
-              <p className="text-sm text-gray-500">Total Users</p>
-              <p className="text-2xl font-bold text-gray-900">{users.length}</p>
+              <p className="text-xs sm:text-sm text-gray-500">Total Users</p>
+              <p className="text-xl sm:text-2xl font-bold text-gray-900">{users.length}</p>
             </div>
-            <Users className="w-8 h-8 text-blue-500" />
+            <Users className="w-6 h-6 sm:w-8 sm:h-8 text-blue-500" />
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow p-4">
-          <div className="flex items-center justify-between">
+        <div className="bg-white rounded-lg shadow p-3 sm:p-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between gap-2 sm:gap-0">
             <div>
-              <p className="text-sm text-gray-500">Pending Approval</p>
-              <p className="text-2xl font-bold text-orange-600">{pendingUsers.length}</p>
+              <p className="text-xs sm:text-sm text-gray-500">Pending Approval</p>
+              <p className="text-xl sm:text-2xl font-bold text-orange-600">{pendingUsers.length}</p>
             </div>
-            <Clock className="w-8 h-8 text-orange-500" />
+            <Clock className="w-6 h-6 sm:w-8 sm:h-8 text-orange-500" />
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow p-4">
-          <div className="flex items-center justify-between">
+        <div className="bg-white rounded-lg shadow p-3 sm:p-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between gap-2 sm:gap-0">
             <div>
-              <p className="text-sm text-gray-500">Active Users</p>
-              <p className="text-2xl font-bold text-green-600">{activeUsers.length}</p>
+              <p className="text-xs sm:text-sm text-gray-500">Active Users</p>
+              <p className="text-xl sm:text-2xl font-bold text-green-600">{activeUsers.length}</p>
             </div>
-            <CheckCircle className="w-8 h-8 text-green-500" />
+            <CheckCircle className="w-6 h-6 sm:w-8 sm:h-8 text-green-500" />
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow p-4">
-          <div className="flex items-center justify-between">
+        <div className="bg-white rounded-lg shadow p-3 sm:p-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between gap-2 sm:gap-0">
             <div>
-              <p className="text-sm text-gray-500">Deactivated</p>
-              <p className="text-2xl font-bold text-red-600">{deactivatedUsers.length}</p>
+              <p className="text-xs sm:text-sm text-gray-500">Deactivated</p>
+              <p className="text-xl sm:text-2xl font-bold text-red-600">{deactivatedUsers.length}</p>
             </div>
-            <UserMinus className="w-8 h-8 text-red-500" />
+            <UserMinus className="w-6 h-6 sm:w-8 sm:h-8 text-red-500" />
           </div>
         </div>
       </div>

@@ -73,9 +73,11 @@ import profileRoutes from './routes/profile.routes';
 import supportRoutes from './routes/support.routes';
 import platformAdminRoutes from './routes/platform-admin.routes';
 import notificationRoutes from './routes/notification.routes';
+import adminRoutes from './routes/admin.routes';
 import { initializeSchedulers } from './utils/scheduler';
 
 app.use('/api/auth', authRoutes);
+app.use('/api/admin', adminRoutes);
 app.use('/api/cases', caseRoutes);
 app.use('/api/clients', clientRoutes);
 app.use('/api/firm', firmRoutes);

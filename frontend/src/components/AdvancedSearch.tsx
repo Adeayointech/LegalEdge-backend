@@ -110,22 +110,22 @@ export function AdvancedSearch() {
   };
 
   return (
-    <div className="p-6">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-white heading-font">Advanced Search</h1>
-        <p className="text-slate-400 mt-1">Search across cases, documents, and clients</p>
+    <div className="p-4 sm:p-6">
+      <div className="mb-4 sm:mb-6">
+        <h1 className="text-2xl sm:text-3xl font-bold text-white heading-font">Advanced Search</h1>
+        <p className="text-slate-400 mt-1 text-sm sm:text-base">Search across cases, documents, and clients</p>
       </div>
 
       {/* Search Form */}
-      <form onSubmit={handleSearch} className="bg-white rounded-lg shadow p-6 mb-6">
-        <div className="flex gap-4 mb-4">
+      <form onSubmit={handleSearch} className="bg-white rounded-lg shadow p-4 sm:p-6 mb-4 sm:mb-6">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-4">
           <div className="flex-1">
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search by title, description, name, email, phone..."
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 text-sm sm:text-base"
             />
           </div>
           <button
@@ -134,23 +134,24 @@ export function AdvancedSearch() {
             onClick={(e) => {
               console.log('[SEARCH] Button clicked!');
             }}
-            className="px-6 py-2 bg-blue-900 text-white rounded-lg hover:bg-blue-800 transition disabled:bg-blue-300 flex items-center gap-2"
+            className="px-4 sm:px-6 py-2 bg-blue-900 text-white rounded-lg hover:bg-blue-800 transition disabled:bg-blue-300 flex items-center justify-center gap-2 text-sm sm:text-base whitespace-nowrap"
           >
-            <Search className="w-5 h-5" />
-            Search
+            <Search className="w-4 h-4 sm:w-5 sm:h-5" />
+            <span className="hidden sm:inline">Search</span>
+            <span className="sm:hidden">Go</span>
           </button>
           <button
             type="button"
             onClick={() => setShowFilters(!showFilters)}
-            className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition flex items-center gap-2 text-gray-700"
+            className="px-3 sm:px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition flex items-center justify-center gap-2 text-gray-700 text-sm sm:text-base whitespace-nowrap"
           >
-            <Filter className="w-5 h-5" />
+            <Filter className="w-4 h-4 sm:w-5 sm:h-5" />
             Filters
           </button>
         </div>
 
         {/* Search Type Tabs */}
-        <div className="flex gap-2 border-b border-gray-200">
+        <div className="flex gap-1 sm:gap-2 border-b border-gray-200 overflow-x-auto">
           {[
             { value: 'all', label: 'All Results', icon: Search },
             { value: 'cases', label: 'Cases', icon: Briefcase },
@@ -163,14 +164,15 @@ export function AdvancedSearch() {
                 key={tab.value}
                 type="button"
                 onClick={() => setSearchType(tab.value as any)}
-                className={`px-4 py-2 font-medium transition border-b-2 flex items-center gap-2 ${
+                className={`px-3 sm:px-4 py-2 font-medium transition border-b-2 flex items-center gap-1 sm:gap-2 text-sm sm:text-base whitespace-nowrap ${
                   searchType === tab.value
                     ? 'border-blue-600 text-blue-600'
                     : 'border-transparent text-gray-600 hover:text-gray-900'
                 }`}
               >
-                <Icon className="w-4 h-4" />
-                {tab.label}
+                <Icon className="w-3 h-3 sm:w-4 sm:h-4" />
+                <span className="hidden sm:inline">{tab.label}</span>
+                <span className="sm:hidden">{tab.value === 'all' ? 'All' : tab.label}</span>
               </button>
             );
           })}
@@ -327,26 +329,26 @@ export function AdvancedSearch() {
       )}
 
       {results.totalResults > 0 && (
-        <div className="bg-white rounded-lg shadow p-4 mb-6">
-          <div className="flex items-center gap-4 text-sm text-gray-600">
-            <span className="font-semibold text-gray-900">
+        <div className="bg-white rounded-lg shadow p-4 mb-4 sm:mb-6">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-600">
+            <span className="font-semibold text-gray-900 text-sm sm:text-base">
               {results.totalResults} total results
             </span>
             {results.casesCount > 0 && (
               <span className="flex items-center gap-1">
-                <Briefcase className="w-4 h-4" />
+                <Briefcase className="w-3 h-3 sm:w-4 sm:h-4" />
                 {results.casesCount} cases
               </span>
             )}
             {results.documentsCount > 0 && (
               <span className="flex items-center gap-1">
-                <FileText className="w-4 h-4" />
+                <FileText className="w-3 h-3 sm:w-4 sm:h-4" />
                 {results.documentsCount} documents
               </span>
             )}
             {results.clientsCount > 0 && (
               <span className="flex items-center gap-1">
-                <Users className="w-4 h-4" />
+                <Users className="w-3 h-3 sm:w-4 sm:h-4" />
                 {results.clientsCount} clients
               </span>
             )}

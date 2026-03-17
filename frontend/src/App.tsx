@@ -196,21 +196,21 @@ function HomePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
       {/* Navigation */}
-      <nav className="absolute w-full z-50 px-6 py-4">
+      <nav className="absolute w-full z-50 px-4 sm:px-6 py-4">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <div className="bg-gradient-to-br from-amber-400 to-yellow-600 p-2.5 rounded-lg shadow-lg">
-              <svg className="w-7 h-7 text-slate-900" fill="currentColor" viewBox="0 0 20 20">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="bg-gradient-to-br from-amber-400 to-yellow-600 p-2 sm:p-2.5 rounded-lg shadow-lg">
+              <svg className="w-5 h-5 sm:w-7 sm:h-7 text-slate-900" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M3 6a3 3 0 013-3h10a1 1 0 01.8 1.6L14.25 8l2.55 3.4A1 1 0 0116 13H6a1 1 0 00-1 1v3a1 1 0 11-2 0V6z" clipRule="evenodd" />
               </svg>
             </div>
-            <span className="text-2xl font-bold text-white tracking-tight">LegalEdge</span>
+            <span className="text-lg sm:text-2xl font-bold text-white tracking-tight">LegalEdge</span>
           </div>
-          <div className="flex gap-4">
-            <a href="/login" className="px-5 py-2.5 text-white hover:text-amber-400 transition-colors font-medium">
+          <div className="flex gap-2 sm:gap-4">
+            <a href="/login" className="px-3 sm:px-5 py-2 sm:py-2.5 text-sm sm:text-base text-white hover:text-amber-400 transition-colors font-medium">
               Login
             </a>
-            <a href="/register" className="px-6 py-2.5 bg-gradient-to-r from-amber-500 to-yellow-600 text-slate-900 rounded-lg hover:from-amber-400 hover:to-yellow-500 transition-all font-semibold shadow-lg hover:shadow-amber-500/50">
+            <a href="/register" className="px-4 sm:px-6 py-2 sm:py-2.5 text-sm sm:text-base bg-gradient-to-r from-amber-500 to-yellow-600 text-slate-900 rounded-lg hover:from-amber-400 hover:to-yellow-500 transition-all font-semibold shadow-lg hover:shadow-amber-500/50">
               Get Started
             </a>
           </div>
@@ -218,25 +218,25 @@ function HomePage() {
       </nav>
 
       {/* Hero Section */}
-      <div className="relative pt-32 pb-20 px-6">
+      <div className="relative pt-24 sm:pt-32 pb-12 sm:pb-20 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="space-y-8">
+          <div className="grid lg:grid-cols-2 gap-8 sm:gap-12 items-center">
+            <div className="space-y-6 sm:space-y-8">
               <div className="inline-block">
-                <span className="px-4 py-2 bg-amber-500/10 border border-amber-500/20 rounded-full text-amber-400 text-sm font-semibold tracking-wide">
+                <span className="px-3 sm:px-4 py-1.5 sm:py-2 bg-amber-500/10 border border-amber-500/20 rounded-full text-amber-400 text-xs sm:text-sm font-semibold tracking-wide">
                   ENTERPRISE LEGAL MANAGEMENT
                 </span>
               </div>
-              <h1 className="text-5xl lg:text-6xl font-bold text-white leading-tight">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight">
                 Elevate Your
                 <span className="block bg-gradient-to-r from-amber-400 to-yellow-500 bg-clip-text text-transparent">
                   Legal Practice
                 </span>
               </h1>
-              <p className="text-xl text-slate-300 leading-relaxed">
+              <p className="text-base sm:text-lg md:text-xl text-slate-300 leading-relaxed">
                 Transform your chambers with our sophisticated case management platform. Built for excellence, designed for professionals who demand the very best.
               </p>
-              <div className="flex flex-wrap gap-4">
+              <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4">
                 <a href="/register" className="px-8 py-4 bg-gradient-to-r from-amber-500 to-yellow-600 text-slate-900 rounded-lg hover:from-amber-400 hover:to-yellow-500 transition-all font-bold text-lg shadow-2xl hover:shadow-amber-500/50 hover:scale-105 transform">
                   Start Free Trial
                 </a>
@@ -244,18 +244,18 @@ function HomePage() {
                   Explore Features
                 </a>
               </div>
-              <div className="flex items-center gap-8 pt-4">
+              <div className="grid grid-cols-3 gap-4 sm:gap-8 pt-4">
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-amber-400">500+</div>
-                  <div className="text-sm text-slate-400">Law Firms</div>
+                  <div className="text-xl sm:text-3xl font-bold text-amber-400">500+</div>
+                  <div className="text-xs sm:text-sm text-slate-400">Law Firms</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-amber-400">50K+</div>
-                  <div className="text-sm text-slate-400">Cases Managed</div>
+                  <div className="text-xl sm:text-3xl font-bold text-amber-400">50K+</div>
+                  <div className="text-xs sm:text-sm text-slate-400">Cases Managed</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-amber-400">99.9%</div>
-                  <div className="text-sm text-slate-400">Uptime</div>
+                  <div className="text-xl sm:text-3xl font-bold text-amber-400">99.9%</div>
+                  <div className="text-xs sm:text-sm text-slate-400">Uptime</div>
                 </div>
               </div>
             </div>
@@ -305,13 +305,13 @@ function HomePage() {
       </div>
 
       {/* Features Section */}
-      <div id="features" className="py-20 px-6 bg-slate-900/50 backdrop-blur-sm">
+      <div id="features" className="py-12 sm:py-20 px-4 sm:px-6 bg-slate-900/50 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-white mb-4">Comprehensive Legal Management Suite</h2>
-            <p className="text-xl text-slate-400">Everything your firm needs, elegantly integrated</p>
+          <div className="text-center mb-12 sm:mb-16">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-4">Comprehensive Legal Management Suite</h2>
+            <p className="text-base sm:text-lg md:text-xl text-slate-400">Everything your firm needs, elegantly integrated</p>
           </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             {[
               {
                 icon: (
@@ -904,18 +904,18 @@ function DashboardPage() {
         </div>
       </div>
       
-      <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-sm rounded-xl shadow-lg border border-white/10 p-8">
-        <h3 className="text-2xl font-bold text-white mb-6 heading-font">Quick Actions</h3>
-        <div className="flex gap-4">
+      <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-sm rounded-xl shadow-lg border border-white/10 p-6 sm:p-8">
+        <h3 className="text-xl sm:text-2xl font-bold text-white mb-4 sm:mb-6 heading-font">Quick Actions</h3>
+        <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4">
           <a
             href="/cases/new"
-            className="px-6 py-3 bg-gradient-to-r from-amber-500 to-yellow-600 text-slate-900 rounded-lg hover:from-amber-400 hover:to-yellow-500 transition-all font-bold shadow-lg hover:shadow-amber-500/50"
+            className="px-6 py-3 bg-gradient-to-r from-amber-500 to-yellow-600 text-slate-900 rounded-lg hover:from-amber-400 hover:to-yellow-500 transition-all font-bold shadow-lg hover:shadow-amber-500/50 text-center"
           >
             Create New Case
           </a>
           <a
             href="/cases"
-            className="px-6 py-3 bg-slate-700/50 text-white rounded-lg hover:bg-slate-700 transition-all font-semibold border border-slate-600"
+            className="px-6 py-3 bg-slate-700/50 text-white rounded-lg hover:bg-slate-700 transition-all font-semibold border border-slate-600 text-center"
           >
             Browse Cases
           </a>
