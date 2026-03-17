@@ -6,17 +6,9 @@ export default defineConfig(({ mode }) => {
   // Load env file based on `mode` in the current working directory.
   const env = loadEnv(mode, process.cwd(), '');
   
-  // Manually inject VITE_ prefixed env vars into process.env
-  // so Vite can expose them via import.meta.env
-  Object.keys(env).forEach((key) => {
-    if (key.startsWith('VITE_')) {
-      process.env[key] = env[key];
-    }
-  });
-  
   console.log('🔍 Vite build mode:', mode);
-  console.log('🔍 VITE_API_URL from loadEnv:', env.VITE_API_URL);
-  console.log('🔍 process.env.VITE_API_URL after injection:', process.env.VITE_API_URL);
+  console.log('🔍 VITE_API_URL:', env.VITE_API_URL);
+  console.log('🔍 Defining import.meta.env.VITE_API_URL as:', env.VITE_API_URL);
   
   return {
     plugins: [react()],
@@ -24,6 +16,10 @@ export default defineConfig(({ mode }) => {
       alias: {
         '@': path.resolve(__dirname, './src'),
       },
+    },
+    // Explicitly define env vars to be replaced at build time
+    define: {
+      'import.meta.env.VITE_API_URL': JSON.stringify(env.VITE_API_URL || 'http://localhost:5000/api'),
     },
     server: {
       port: 3000,
