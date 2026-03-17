@@ -32,4 +32,4 @@ lerna-debug.log*
 # env
 .env
 .env.local
-.env.production
+# .env.production - allowing this to be committed for Vercel
