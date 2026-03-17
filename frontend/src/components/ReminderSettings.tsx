@@ -60,8 +60,8 @@ export function ReminderSettings({ deadlineId, currentSettings, onClose, onUpdat
     try {
       const token = localStorage.getItem('token');
       const endpoint = isHearing 
-        ? `http://localhost:5000/api/hearing-reminders/${deadlineId}/settings`
-        : `http://localhost:5000/api/reminders/${deadlineId}/settings`;
+        ? `https://legaledge-backend-production.up.railway.app/api/hearing-reminders/${deadlineId}/settings`
+        : `https://legaledge-backend-production.up.railway.app/api/reminders/${deadlineId}/settings`;
       
       await axios.put(
         endpoint,
@@ -87,8 +87,8 @@ export function ReminderSettings({ deadlineId, currentSettings, onClose, onUpdat
     try {
       const token = localStorage.getItem('token');
       const endpoint = isHearing
-        ? `http://localhost:5000/api/hearing-reminders/${deadlineId}/test`
-        : `http://localhost:5000/api/reminders/${deadlineId}/test`;
+        ? `https://legaledge-backend-production.up.railway.app/api/hearing-reminders/${deadlineId}/test`
+        : `https://legaledge-backend-production.up.railway.app/api/reminders/${deadlineId}/test`;
       
       await axios.post(
         endpoint,

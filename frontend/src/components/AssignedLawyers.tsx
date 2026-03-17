@@ -25,7 +25,7 @@ export function AssignedLawyers({ caseId, assignedLawyers }: AssignedLawyersProp
     queryKey: ['users'],
     queryFn: async () => {
       const api = axios.create({
-        baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
+        baseURL: import.meta.env.VITE_API_URL || 'https://legaledge-backend-production.up.railway.app/api',
       });
       const token = localStorage.getItem('token');
       if (token) {

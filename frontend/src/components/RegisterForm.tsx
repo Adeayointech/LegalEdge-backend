@@ -50,7 +50,7 @@ export function RegisterForm() {
     setLoading(true);
 
     try {
-      const response = await axios.post('http://localhost:5000/api/auth/register', {
+      const response = await axios.post('https://legaledge-backend-production.up.railway.app/api/auth/register', {
         email: formData.email,
         password: formData.password,
         firstName: formData.firstName,
