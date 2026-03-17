@@ -10,6 +10,9 @@ dotenv.config();
 // Create Express app
 const app = express();
 
+// Trust proxy for Railway (behind reverse proxy)
+app.set('trust proxy', 1);
+
 // Security middleware
 app.use(helmet());
 
@@ -119,6 +122,19 @@ async function startServer() {
     console.log('🔍 Checking database connection...');
     await prisma.$connect();
     console.log('✅ Database connected successfully');
+    
+    // Run migrations in production on first startup
+    if (process.env.NODE_ENV === 'production' && process.env.RUN_MIGRATIONS !== 'false') {
+      console.log('🔄 Running database migrations...');
+      const { execSync } = await import('child_process');
+      try {
+        execSync('npx prisma migrate deploy', { stdio: 'inherit' });
+        console.log('✅ Database migrations completed');
+      } catch (migrationError) {
+        console.error('⚠️  Migration failed (might already be applied):', migrationError);
+      }
+    }
+    
     await prisma.$disconnect();
     
     // Start Express server - bind to 0.0.0.0 for Railway
