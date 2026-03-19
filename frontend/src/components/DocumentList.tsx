@@ -93,7 +93,7 @@ export function DocumentList({ caseId }: DocumentListProps) {
   };
 
   if (isLoading) {
-    return <div className="text-center py-8 text-gray-500">Loading documents...</div>;
+    return <div className="text-center py-8 text-gray-300">Loading documents...</div>;
   }
 
   return (
@@ -105,12 +105,12 @@ export function DocumentList({ caseId }: DocumentListProps) {
           placeholder="Search documents..."
           value={filter.search}
           onChange={(e) => setFilter({ ...filter, search: e.target.value })}
-          className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+          className="flex-1 px-3 py-2 bg-slate-700/50 border border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 text-white placeholder-gray-400"
         />
         <select
           value={filter.documentType}
           onChange={(e) => setFilter({ ...filter, documentType: e.target.value })}
-          className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+          className="px-3 py-2 bg-slate-700/50 border border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 text-white"
         >
           <option value="">All Types</option>
           <option value="COMPLAINT">Complaint</option>
@@ -127,7 +127,7 @@ export function DocumentList({ caseId }: DocumentListProps) {
         <select
           value={filter.status}
           onChange={(e) => setFilter({ ...filter, status: e.target.value })}
-          className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+          className="px-3 py-2 bg-slate-700/50 border border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 text-white"
         >
           <option value="">All Statuses</option>
           <option value="DRAFT">Draft</option>
@@ -140,10 +140,10 @@ export function DocumentList({ caseId }: DocumentListProps) {
 
       {/* Document List */}
       {documents.length === 0 ? (
-        <div className="text-center py-12 bg-gray-50 rounded-lg">
+        <div className="text-center py-12 bg-slate-800/50 backdrop-blur-sm rounded-lg border border-slate-700">
           <FileText className="w-12 h-12 mx-auto text-gray-400 mb-3" />
-          <p className="text-gray-600">No documents found</p>
-          <p className="text-sm text-gray-500 mt-1">Upload your first document to get started</p>
+          <p className="text-gray-300">No documents found</p>
+          <p className="text-sm text-gray-400 mt-1">Upload your first document to get started</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -154,14 +154,14 @@ export function DocumentList({ caseId }: DocumentListProps) {
             return (
               <div
                 key={doc.id}
-                className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition"
+                className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-lg p-4 hover:shadow-lg hover:border-amber-500/50 transition"
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-3 flex-1">
-                    <FileText className="w-8 h-8 text-blue-600 flex-shrink-0 mt-1" />
+                    <FileText className="w-8 h-8 text-amber-400 flex-shrink-0 mt-1" />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <h4 className="font-semibold text-gray-900 truncate">
+                        <h4 className="font-semibold text-white truncate">
                           {doc.title}
                         </h4>
                         <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[doc.status as keyof typeof STATUS_COLORS]}`}>
@@ -173,18 +173,18 @@ export function DocumentList({ caseId }: DocumentListProps) {
                           </span>
                         )}
                       </div>
-                      <p className="text-sm text-gray-600 mb-2">{doc.documentType.replace(/_/g, ' ')}</p>
+                      <p className="text-sm text-gray-300 mb-2">{doc.documentType.replace(/_/g, ' ')}</p>
                       {doc.description && (
-                        <p className="text-sm text-gray-500 mb-2">{doc.description}</p>
+                        <p className="text-sm text-gray-400 mb-2">{doc.description}</p>
                       )}
-                      <div className="flex items-center gap-4 text-xs text-gray-500">
+                      <div className="flex items-center gap-4 text-xs text-gray-400">
                         <span>{doc.fileName}</span>
                         <span>{formatFileSize(doc.fileSize)}</span>
                         <span>Uploaded {formatDate(doc.createdAt)}</span>
                         <span>by {doc.uploadedBy.firstName} {doc.uploadedBy.lastName}</span>
                       </div>
                       {doc.filedDate && (
-                        <div className="mt-2 text-xs text-gray-600">
+                        <div className="mt-2 text-xs text-gray-300">
                           <strong>Filed:</strong> {formatDate(doc.filedDate)}
                           {/* Filing number not available */}
                           {doc.filedBy && ` • by ${doc.filedBy}`}
@@ -197,14 +197,14 @@ export function DocumentList({ caseId }: DocumentListProps) {
                   <div className="flex items-center gap-2 ml-4">
                     <button
                       onClick={() => handleDownload(doc.id, doc.fileName)}
-                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-md transition"
+                      className="p-2 text-amber-400 hover:bg-slate-700/50 rounded-md transition"
                       title="Download"
                     >
                       <Download className="w-5 h-5" />
                     </button>
                     <button
                       onClick={() => handleDelete(doc.id, doc.title)}
-                      className="p-2 text-red-600 hover:bg-red-50 rounded-md transition"
+                      className="p-2 text-red-400 hover:bg-slate-700/50 rounded-md transition"
                       title="Delete"
                     >
                       <Trash2 className="w-5 h-5" />

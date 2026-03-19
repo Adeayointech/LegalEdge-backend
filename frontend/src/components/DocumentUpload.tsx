@@ -134,8 +134,8 @@ export function DocumentUpload({ caseId, onSuccess, onCancel }: DocumentUploadPr
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-6">
-      <h3 className="text-2xl font-bold text-gray-900 mb-6">Upload Document</h3>
+    <div className="bg-slate-800/50 backdrop-blur-sm rounded-lg shadow-lg p-6 border border-slate-700">
+      <h3 className="text-2xl font-bold text-white heading-font mb-6">Upload Document</h3>
       
       {error && (
         <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
@@ -147,7 +147,7 @@ export function DocumentUpload({ caseId, onSuccess, onCancel }: DocumentUploadPr
         {/* File Upload Area */}
         <div
           className={`border-2 border-dashed rounded-lg p-8 text-center transition ${
-            dragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
+            dragActive ? 'border-amber-500 bg-amber-500/10' : 'border-slate-600'
           }`}
           onDragEnter={handleDrag}
           onDragLeave={handleDrag}
@@ -155,12 +155,12 @@ export function DocumentUpload({ caseId, onSuccess, onCancel }: DocumentUploadPr
           onDrop={handleDrop}
         >
           {selectedFile ? (
-            <div className="flex items-center justify-between bg-gray-50 p-4 rounded">
+            <div className="flex items-center justify-between bg-slate-700/50 p-4 rounded">
               <div className="flex items-center gap-3">
-                <FileText className="w-8 h-8 text-blue-600" />
+                <FileText className="w-8 h-8 text-amber-400" />
                 <div className="text-left">
-                  <p className="font-medium text-gray-900">{selectedFile.name}</p>
-                  <p className="text-sm text-gray-500">{formatFileSize(selectedFile.size)}</p>
+                  <p className="font-medium text-white">{selectedFile.name}</p>
+                  <p className="text-sm text-gray-300">{formatFileSize(selectedFile.size)}</p>
                 </div>
               </div>
               <button
@@ -174,11 +174,11 @@ export function DocumentUpload({ caseId, onSuccess, onCancel }: DocumentUploadPr
           ) : (
             <div>
               <Upload className="w-12 h-12 mx-auto text-gray-400 mb-3" />
-              <p className="text-gray-700 mb-2">Drag and drop a file here, or click to select</p>
-              <p className="text-sm text-gray-500 mb-4">
+              <p className="text-gray-300 mb-2">Drag and drop a file here, or click to select</p>
+              <p className="text-sm text-gray-400 mb-4">
                 PDF, Word, Excel, Images, Text (Max 50MB)
               </p>
-              <label className="inline-block px-4 py-2 bg-blue-900 text-white rounded-md cursor-pointer hover:bg-blue-800">
+              <label className="inline-block px-4 py-2 bg-gradient-to-r from-amber-500 to-yellow-600 text-slate-900 rounded-lg cursor-pointer hover:from-amber-400 hover:to-yellow-500 font-semibold transition-all shadow-lg">
                 Choose File
                 <input
                   type="file"
@@ -194,7 +194,7 @@ export function DocumentUpload({ caseId, onSuccess, onCancel }: DocumentUploadPr
         {/* Document Details */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-300 mb-1">
               Document Title *
             </label>
             <input
@@ -204,12 +204,12 @@ export function DocumentUpload({ caseId, onSuccess, onCancel }: DocumentUploadPr
               onChange={handleChange}
               required
               placeholder="e.g., Motion to Dismiss"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 text-white placeholder-gray-400"
             />
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-300 mb-1">
               Document Type *
             </label>
             <select
@@ -217,7 +217,7 @@ export function DocumentUpload({ caseId, onSuccess, onCancel }: DocumentUploadPr
               value={formData.documentType}
               onChange={handleChange}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 text-white"
             >
               {DOCUMENT_TYPES.map(type => (
                 <option key={type} value={type}>
@@ -228,7 +228,7 @@ export function DocumentUpload({ caseId, onSuccess, onCancel }: DocumentUploadPr
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-300 mb-1">
               Status *
             </label>
             <select
@@ -236,7 +236,7 @@ export function DocumentUpload({ caseId, onSuccess, onCancel }: DocumentUploadPr
               value={formData.status}
               onChange={handleChange}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 text-white"
             >
               {DOCUMENT_STATUSES.map(status => (
                 <option key={status} value={status}>
@@ -247,7 +247,7 @@ export function DocumentUpload({ caseId, onSuccess, onCancel }: DocumentUploadPr
           </div>
           
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-300 mb-1">
               Description
             </label>
             <textarea
@@ -256,7 +256,7 @@ export function DocumentUpload({ caseId, onSuccess, onCancel }: DocumentUploadPr
               onChange={handleChange}
               rows={3}
               placeholder="Brief description of the document..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 text-white placeholder-gray-400"
             />
           </div>
           
@@ -264,7 +264,7 @@ export function DocumentUpload({ caseId, onSuccess, onCancel }: DocumentUploadPr
           {(formData.status === 'FILED' || formData.status === 'SERVED') && (
             <>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-300 mb-1">
                   Filed Date
                 </label>
                 <input
@@ -272,12 +272,12 @@ export function DocumentUpload({ caseId, onSuccess, onCancel }: DocumentUploadPr
                   name="filedDate"
                   value={formData.filedDate}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 text-white"
                 />
               </div>
               
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-300 mb-1">
                   Filed By
                 </label>
                 <input
@@ -286,7 +286,7 @@ export function DocumentUpload({ caseId, onSuccess, onCancel }: DocumentUploadPr
                   value={formData.filedBy}
                   onChange={handleChange}
                   placeholder="Person who filed"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 text-white placeholder-gray-400"
                 />
               </div>
             </>
@@ -298,7 +298,7 @@ export function DocumentUpload({ caseId, onSuccess, onCancel }: DocumentUploadPr
           <button
             type="submit"
             disabled={uploadMutation.isPending || !selectedFile}
-            className="flex-1 bg-blue-900 text-white py-2 px-4 rounded-md hover:bg-blue-800 disabled:bg-gray-400 disabled:cursor-not-allowed transition"
+            className="flex-1 bg-gradient-to-r from-amber-500 to-yellow-600 text-slate-900 py-2 px-4 rounded-lg hover:from-amber-400 hover:to-yellow-500 disabled:bg-gray-600 disabled:cursor-not-allowed transition-all font-semibold shadow-lg"
           >
             {uploadMutation.isPending ? 'Uploading...' : 'Upload Document'}
           </button>
@@ -306,7 +306,7 @@ export function DocumentUpload({ caseId, onSuccess, onCancel }: DocumentUploadPr
             <button
               type="button"
               onClick={onCancel}
-              className="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition"
+              className="px-6 py-2 border border-slate-600 text-gray-300 rounded-lg hover:bg-slate-700/50 transition"
             >
               Cancel
             </button>

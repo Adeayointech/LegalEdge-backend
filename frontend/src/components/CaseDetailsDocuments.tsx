@@ -42,20 +42,20 @@ export function CaseDetailsDocuments() {
         <div className="flex items-center gap-4">
           <Link
             to={`/cases/${id}`}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            className="p-2 hover:bg-slate-700/50 rounded-full transition-colors text-white"
           >
             <ArrowLeft size={20} />
           </Link>
           <div>
-            <h2 className="text-3xl font-bold text-gray-900">{caseData.title}</h2>
-            <p className="text-gray-600">{caseData.suitNumber}</p>
+            <h2 className="text-3xl font-bold text-white heading-font">{caseData.title}</h2>
+            <p className="text-gray-300">{caseData.suitNumber}</p>
           </div>
         </div>
         
         {activeTab === 'documents' && !showUpload && (
           <button
             onClick={() => setShowUpload(true)}
-            className="flex items-center gap-2 bg-blue-900 text-white px-4 py-2 rounded-md hover:bg-blue-800 transition"
+            className="flex items-center gap-2 bg-gradient-to-r from-amber-500 to-yellow-600 text-slate-900 px-4 py-2 rounded-lg hover:from-amber-400 hover:to-yellow-500 transition-all font-bold shadow-lg hover:shadow-amber-500/50"
           >
             <Upload className="w-5 h-5" />
             Upload Document
@@ -64,7 +64,7 @@ export function CaseDetailsDocuments() {
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-gray-200">
+      <div className="border-b border-slate-700">
         <nav className="flex gap-8">
           <button
             onClick={() => {
@@ -73,8 +73,8 @@ export function CaseDetailsDocuments() {
             }}
             className={`pb-4 border-b-2 font-medium transition ${
               activeTab === 'documents'
-                ? 'border-blue-600 text-blue-600'
-                : 'border-transparent text-gray-600 hover:text-gray-900'
+                ? 'border-amber-500 text-amber-400'
+                : 'border-transparent text-gray-400 hover:text-white'
             }`}
           >
             <FileText className="w-5 h-5 inline mr-2" />
@@ -87,8 +87,8 @@ export function CaseDetailsDocuments() {
             }}
             className={`pb-4 border-b-2 font-medium transition ${
               activeTab === 'tracker'
-                ? 'border-blue-600 text-blue-600'
-                : 'border-transparent text-gray-600 hover:text-gray-900'
+                ? 'border-amber-500 text-amber-400'
+                : 'border-transparent text-gray-400 hover:text-white'
             }`}
           >
             Filing Tracker
