@@ -4,6 +4,7 @@ import { useAuthStore } from '../store/authStore';
 import { useLocation } from 'react-router-dom';
 import { api } from '../lib/api';
 import { User, Mail, Phone, Building, MapPin, Calendar, Shield, Key, Eye, EyeOff, MessageSquare, Send } from 'lucide-react';
+import { SupportTicketList } from './SupportTicketList';
 
 interface UserProfile {
   id: string;
@@ -548,87 +549,7 @@ export function Profile() {
       </div>
 
       {/* My Support Tickets Section */}
-      <div className="bg-white rounded-lg shadow">
-        <div className="p-6 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">My Support Tickets</h2>
-        </div>
-        <div className="p-6">
-          {tickets.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              <MessageSquare className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-              <p>No support tickets yet</p>
-              <p className="text-sm mt-1">Submit a request if you need help</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {tickets.map((ticket: any) => (
-                <div
-                  key={ticket.id}
-                  ref={(el) => (ticketRefs.current[ticket.id] = el)}
-                  className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition"
-                >
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900">{ticket.subject}</h3>
-                      <p className="text-sm text-gray-600 mt-1">
-                        Submitted {new Date(ticket.createdAt).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <div className="flex flex-col items-end gap-2">
-                      <span
-                        className={`px-3 py-1 rounded-full text-xs font-medium ${
-                          ticket.status === 'OPEN'
-                            ? 'bg-blue-100 text-blue-800'
-                            : ticket.status === 'IN_PROGRESS'
-                            ? 'bg-yellow-100 text-yellow-800'
-                            : ticket.status === 'RESOLVED'
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-gray-100 text-gray-800'
-                        }`}
-                      >
-                        {ticket.status.replace('_', ' ')}
-                      </span>
-                      <span
-                        className={`px-2 py-0.5 rounded text-xs font-medium ${
-                          ticket.priority === 'URGENT'
-                            ? 'bg-red-100 text-red-800'
-                            : ticket.priority === 'HIGH'
-                            ? 'bg-orange-100 text-orange-800'
-                            : ticket.priority === 'MEDIUM'
-                            ? 'bg-blue-100 text-blue-800'
-                            : 'bg-gray-100 text-gray-800'
-                        }`}
-                      >
-                        {ticket.priority}
-                      </span>
-                    </div>
-                  </div>
-                  
-                  <p className="text-sm text-gray-700 mt-2 whitespace-pre-wrap">
-                    {ticket.message}
-                  </p>
-
-                  {ticket.response && (
-                    <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-md">
-                      <p className="text-sm font-medium text-green-900 mb-1">Support Response:</p>
-                      <p className="text-sm text-green-800 whitespace-pre-wrap">{ticket.response}</p>
-                      {ticket.respondedAt && (
-                        <p className="text-xs text-green-600 mt-2">
-                          Responded on {new Date(ticket.respondedAt).toLocaleString()}
-                        </p>
-                      )}
-                    </div>
-                  )}
-
-                  <p className="text-xs text-gray-500 mt-3">
-                    Ticket ID: {ticket.id}
-                  </p>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
+      <SupportTicketList tickets={tickets} ticketRefs={ticketRefs} />
 
       {/* Support Modal */}
       {showSupportModal && (
