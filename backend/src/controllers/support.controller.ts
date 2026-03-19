@@ -27,10 +27,12 @@ export const createSupportTicket = async (req: AuthRequest, res: Response) => {
       include: {
         user: {
           select: {
+            id: true,
             email: true,
             firstName: true,
             lastName: true,
             role: true,
+            firmId: true,
           },
         },
       },
@@ -143,9 +145,17 @@ export const createSupportTicket = async (req: AuthRequest, res: Response) => {
       `,
     }).catch(err => console.error('Failed to send confirmation email:', err));
 
-    // Create notification for all platform admins
+    // Create notification for platform admins (only those without firm association or same firm)
+    const ticketCreatorFirmId = ticket.user.firmId;
     const platformAdmins = await prisma.user.findMany({
-      where: { role: 'PLATFORM_ADMIN', isActive: true },
+      where: { 
+        role: 'PLATFORM_ADMIN', 
+        isActive: true,
+        OR: [
+          { firmId: null }, // Platform-level admins (no firm association)
+          { firmId: ticketCreatorFirmId }, // Same firm admins
+        ],
+      },
       select: { id: true },
     });
 
