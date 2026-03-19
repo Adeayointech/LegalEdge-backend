@@ -17,17 +17,22 @@ const createTransporter = (): Transporter | null => {
     const port = parseInt(process.env.SMTP_PORT || '587');
     const secure = process.env.SMTP_SECURE === 'true' || port === 465;
     
+    // Remove spaces from password (Gmail App Passwords often have spaces but shouldn't in config)
+    const password = process.env.SMTP_PASS.replace(/\s/g, '');
+    
     return nodemailer.createTransport({
       host: process.env.SMTP_HOST || 'smtp.gmail.com',
       port: port,
       secure: secure, // true for 465, false for 587
       auth: {
         user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
+        pass: password,
       },
       tls: {
         rejectUnauthorized: false // Allow self-signed certificates
-      }
+      },
+      connectionTimeout: 10000, // 10 second timeout
+      greetingTimeout: 10000,
     });
   } catch (error) {
     console.error('Failed to create email transporter:', error);
@@ -54,13 +59,21 @@ export const sendEmail = async (options: EmailOptions): Promise<boolean> => {
     }
 
     console.log('[EMAIL] Sending email via SMTP...');
-    const info = await transporter.sendMail({
+    
+    // Set a timeout to prevent hanging (15 second timeout)
+    const sendPromise = transporter.sendMail({
       from: `"${process.env.SMTP_FROM_NAME || 'LegalEdge'}" <${process.env.SMTP_USER}>`,
       to: options.to,
       subject: options.subject,
       text: options.text,
       html: options.html,
     });
+    
+    const timeoutPromise = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error('Email send timeout after 15 seconds')), 15000)
+    );
+    
+    const info: any = await Promise.race([sendPromise, timeoutPromise]);
 
     console.log(`[EMAIL] ✅ Email sent successfully to ${options.to}`);
     console.log(`[EMAIL] Message ID: ${info.messageId}`);

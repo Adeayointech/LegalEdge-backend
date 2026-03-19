@@ -148,8 +148,9 @@ export const createSupportTicket = async (req: AuthRequest, res: Response) => {
     // Create notification for platform admins (only those without firm association or same firm)
     const ticketCreatorFirmId = ticket.user.firmId;
     console.log(`[NOTIFICATION] Creating notifications for ticket from firm: ${ticketCreatorFirmId || 'NO FIRM'}`);
+    console.log(`[NOTIFICATION] Looking for PLATFORM_ADMIN users...`);
     
-    const platformAdmins = await prisma.user.findMany({
+    let platformAdmins = await prisma.user.findMany({
       where: { 
         role: 'PLATFORM_ADMIN', 
         isActive: true,
@@ -158,12 +159,29 @@ export const createSupportTicket = async (req: AuthRequest, res: Response) => {
           ...(ticketCreatorFirmId ? [{ firmId: ticketCreatorFirmId }] : []), // Same firm admins (only if firmId exists)
         ],
       },
-      select: { id: true, email: true, firmId: true },
+      select: { id: true, email: true, firmId: true, role: true },
     });
 
-    console.log(`[NOTIFICATION] Found ${platformAdmins.length} platform admins to notify`);
+    // Fallback: If no PLATFORM_ADMIN found, notify SUPER_ADMIN from same firm
+    if (platformAdmins.length === 0 && ticketCreatorFirmId) {
+      console.log(`[NOTIFICATION] No PLATFORM_ADMIN found, looking for SUPER_ADMIN in same firm...`);
+      platformAdmins = await prisma.user.findMany({
+        where: {
+          role: 'SUPER_ADMIN',
+          firmId: ticketCreatorFirmId,
+          isActive: true,
+        },
+        select: { id: true, email: true, firmId: true, role: true },
+      });
+    }
+
+    console.log(`[NOTIFICATION] Found ${platformAdmins.length} admins to notify:`);
+    platformAdmins.forEach(admin => {
+      console.log(`  - ${admin.email} (role: ${admin.role}, firmId: ${admin.firmId || 'NULL'})`);
+    });
+    
     for (const admin of platformAdmins) {
-      console.log(`[NOTIFICATION] Notifying admin: ${admin.email} (firmId: ${admin.firmId || 'NULL'})`);
+      console.log(`[NOTIFICATION] Creating notification for admin: ${admin.email}`);
       await createNotification({
         userId: admin.id,
         type: NotificationType.SUPPORT_TICKET,

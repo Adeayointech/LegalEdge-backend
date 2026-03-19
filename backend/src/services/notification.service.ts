@@ -36,20 +36,22 @@ export const createNotification = async (params: CreateNotificationParams) => {
     },
   });
 
-  // Send email notification if requested
+  // Send email notification if requested (non-blocking)
   if (shouldSendEmail && notification.user.email) {
-    try {
-      await sendNotificationEmail(notification);
-      await prisma.notification.update({
-        where: { id: notification.id },
-        data: {
-          emailSent: true,
-          emailSentAt: new Date(),
-        },
+    // Fire and forget - don't await
+    sendNotificationEmail(notification)
+      .then(async () => {
+        await prisma.notification.update({
+          where: { id: notification.id },
+          data: {
+            emailSent: true,
+            emailSentAt: new Date(),
+          },
+        });
+      })
+      .catch(error => {
+        console.error('Failed to send notification email:', error);
       });
-    } catch (error) {
-      console.error('Failed to send notification email:', error);
-    }
   }
 
   return notification;
@@ -102,7 +104,7 @@ export const sendNotificationEmail = async (notification: any) => {
     </html>
   `;
 
-  await sendEmail({
+  return sendEmail({
     to: notification.user.email,
     subject,
     html,
@@ -160,11 +162,36 @@ export const getUnreadCount = async (userId: string) => {
 };
 
 export const getUserNotifications = async (userId: string, limit = 50) => {
-  return await prisma.notification.findMany({
+  console.log(`[NOTIFICATION] Fetching notifications for user: ${userId}`);
+  
+  const notifications = await prisma.notification.findMany({
     where: { userId },
     orderBy: { createdAt: 'desc' },
     take: limit,
+    include: {
+      user: {
+        select: {
+          id: true,
+          email: true,
+          firstName: true,
+          firmId: true,
+        },
+      },
+    },
   });
+  
+  console.log(`[NOTIFICATION] Found ${notifications.length} notifications for user ${userId}`);
+  if (notifications.length > 0) {
+    console.log(`[NOTIFICATION] Sample notification:`, {
+      id: notifications[0].id,
+      type: notifications[0].type,
+      title: notifications[0].title,
+      userId: notifications[0].userId,
+      userEmail: notifications[0].user.email,
+    });
+  }
+  
+  return notifications;
 };
 
 export const deleteNotification = async (notificationId: string, userId: string) => {
