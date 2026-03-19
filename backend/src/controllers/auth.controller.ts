@@ -7,6 +7,7 @@ import { generateTwoFactorSecret, generateQRCode, verifyTwoFactorToken } from '.
 import { createAuditLog } from '../middleware/auditLog';
 import { AuthRequest } from '../middleware/auth';
 import { createNotification } from '../services/notification.service';
+import { sendEmail } from '../utils/email';
 
 const generateFirmCode = (): string => {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -147,6 +148,42 @@ export const register = async (req: Request, res: Response) => {
       }
     }
     
+    // Send welcome email to the user
+    await sendEmail({
+      to: user.email,
+      subject: 'Welcome to LegalEdge Platform',
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 8px 8px 0 0; }
+            .content { background: #f9fafb; padding: 30px; border-radius: 0 0 8px 8px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1 style="margin: 0;">Welcome to LegalEdge!</h1>
+            </div>
+            <div class="content">
+              <p>Hello ${user.firstName},</p>
+              <p>Welcome to LegalEdge - Your complete legal practice management solution.</p>
+              ${isApproved ? 
+                '<p>Your account is now active and you can start using the platform right away.</p>' : 
+                '<p>Your account has been created successfully. An administrator will review and approve your account shortly.</p>'
+              }
+              <p>If you have any questions, please contact our support team.</p>
+              <p>Best regards,<br>The LegalEdge Team</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
+    }).catch(err => console.error('Failed to send welcome email:', err));
+
     // If user is approved (SUPER_ADMIN), generate token and log them in
     // Otherwise, return success message without token (requires approval)
     if (isApproved) {

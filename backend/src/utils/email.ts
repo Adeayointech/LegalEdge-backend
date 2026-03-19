@@ -37,19 +37,24 @@ const createTransporter = (): Transporter | null => {
 
 export const sendEmail = async (options: EmailOptions): Promise<boolean> => {
   try {
+    console.log('[EMAIL] Attempting to send email to:', options.to);
+    console.log('[EMAIL] SMTP User configured:', process.env.SMTP_USER ? 'YES' : 'NO');
+    console.log('[EMAIL] SMTP Pass configured:', process.env.SMTP_PASS ? 'YES' : 'NO');
+    
     // Skip if email credentials not configured
     if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-      console.log('Email not sent: SMTP credentials not configured');
+      console.log('[EMAIL] ❌ Email not sent: SMTP credentials not configured');
       return false;
     }
 
     const transporter = createTransporter();
     if (!transporter) {
-      console.log('Email not sent: Failed to create transporter');
+      console.log('[EMAIL] ❌ Email not sent: Failed to create transporter');
       return false;
     }
 
-    await transporter.sendMail({
+    console.log('[EMAIL] Sending email via SMTP...');
+    const info = await transporter.sendMail({
       from: `"${process.env.SMTP_FROM_NAME || 'LegalEdge'}" <${process.env.SMTP_USER}>`,
       to: options.to,
       subject: options.subject,
@@ -57,10 +62,13 @@ export const sendEmail = async (options: EmailOptions): Promise<boolean> => {
       html: options.html,
     });
 
-    console.log(`Email sent successfully to ${options.to}`);
+    console.log(`[EMAIL] ✅ Email sent successfully to ${options.to}`);
+    console.log(`[EMAIL] Message ID: ${info.messageId}`);
     return true;
-  } catch (error) {
-    console.error('Failed to send email:', error);
+  } catch (error: any) {
+    console.error('[EMAIL] ❌ Failed to send email:', error.message || error);
+    console.error('[EMAIL] Error code:', error.code);
+    console.error('[EMAIL] Error details:', JSON.stringify(error, null, 2));
     return false;
   }
 };

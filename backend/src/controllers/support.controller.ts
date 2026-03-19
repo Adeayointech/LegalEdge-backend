@@ -147,19 +147,23 @@ export const createSupportTicket = async (req: AuthRequest, res: Response) => {
 
     // Create notification for platform admins (only those without firm association or same firm)
     const ticketCreatorFirmId = ticket.user.firmId;
+    console.log(`[NOTIFICATION] Creating notifications for ticket from firm: ${ticketCreatorFirmId || 'NO FIRM'}`);
+    
     const platformAdmins = await prisma.user.findMany({
       where: { 
         role: 'PLATFORM_ADMIN', 
         isActive: true,
         OR: [
           { firmId: null }, // Platform-level admins (no firm association)
-          { firmId: ticketCreatorFirmId }, // Same firm admins
+          ...(ticketCreatorFirmId ? [{ firmId: ticketCreatorFirmId }] : []), // Same firm admins (only if firmId exists)
         ],
       },
-      select: { id: true },
+      select: { id: true, email: true, firmId: true },
     });
 
+    console.log(`[NOTIFICATION] Found ${platformAdmins.length} platform admins to notify`);
     for (const admin of platformAdmins) {
+      console.log(`[NOTIFICATION] Notifying admin: ${admin.email} (firmId: ${admin.firmId || 'NULL'})`);
       await createNotification({
         userId: admin.id,
         type: NotificationType.SUPPORT_TICKET,
