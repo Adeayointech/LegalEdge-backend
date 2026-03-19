@@ -203,6 +203,7 @@ export const updateSupportTicket = async (req: AuthRequest, res: Response) => {
       include: {
         user: {
           select: {
+            id: true,
             email: true,
             firstName: true,
             lastName: true,
@@ -226,6 +227,7 @@ export const updateSupportTicket = async (req: AuthRequest, res: Response) => {
       include: {
         user: {
           select: {
+            id: true,
             email: true,
             firstName: true,
             lastName: true,
