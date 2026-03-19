@@ -232,9 +232,9 @@ export const updateSupportTicket = async (req: AuthRequest, res: Response) => {
       },
     });
 
-    // Send email notification if there's a response
+    // Send email notification if there's a response (non-blocking)
     if (response && response !== ticket.response) {
-      await sendEmail({
+      sendEmail({
         to: updated.user.email,
         subject: `Update on Your Support Ticket: ${ticket.subject}`,
         html: `
@@ -274,7 +274,7 @@ export const updateSupportTicket = async (req: AuthRequest, res: Response) => {
           </body>
           </html>
         `,
-      });
+      }).catch(err => console.error('Failed to send ticket response email:', err));
     }
 
     res.json(updated);

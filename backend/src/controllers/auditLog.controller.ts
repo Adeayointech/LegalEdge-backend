@@ -46,8 +46,21 @@ export const getAuditLogs = async (req: AuthRequest, res: Response) => {
       }
     }
 
-    // Only show logs for the user's firm
-    // TODO: Implement firm-level filtering through cases and documents
+    // Only show logs for the user's firm (unless PLATFORM_ADMIN)
+    if (req.user.role !== 'PLATFORM_ADMIN') {
+      // Get user's firmId
+      const user = await prisma.user.findUnique({
+        where: { id: req.user.userId },
+        select: { firmId: true },
+      });
+
+      if (user?.firmId) {
+        // Filter logs to only show those from users in the same firm
+        where.user = {
+          firmId: user.firmId,
+        };
+      }
+    }
 
     const skip = (Number(page) - 1) * Number(limit);
     const take = Number(limit);

@@ -36,11 +36,12 @@ export const createSupportTicket = async (req: AuthRequest, res: Response) => {
       },
     });
 
-    // Send email notification to support team
+    // Send email notification to support team (non-blocking)
     const supportEmail = process.env.SUPPORT_EMAIL || process.env.SMTP_USER;
     if (supportEmail) {
       const priorityEmoji = priority === 'URGENT' ? '🚨' : priority === 'HIGH' ? '⚠️' : '📧';
-      await sendEmail({
+      // Fire and forget - don't block on email sending
+      sendEmail({
         to: supportEmail,
         subject: `${priorityEmoji} New Support Ticket: ${subject}`,
         html: `
@@ -101,11 +102,11 @@ export const createSupportTicket = async (req: AuthRequest, res: Response) => {
           </body>
           </html>
         `,
-      });
+      }).catch(err => console.error('Failed to send support email:', err));
     }
 
-    // Send confirmation email to user
-    await sendEmail({
+    // Send confirmation email to user (non-blocking)
+    sendEmail({
       to: ticket.user.email,
       subject: `Support Ticket Received: ${subject}`,
       html: `
@@ -140,7 +141,7 @@ export const createSupportTicket = async (req: AuthRequest, res: Response) => {
         </body>
         </html>
       `,
-    });
+    }).catch(err => console.error('Failed to send confirmation email:', err));
 
     // Create notification for all platform admins
     const platformAdmins = await prisma.user.findMany({
@@ -286,9 +287,9 @@ export const updateSupportTicketStatus = async (req: AuthRequest, res: Response)
       },
     });
 
-    // Send email notification if there's a response
+    // Send email notification if there's a response (non-blocking)
     if (response && response !== ticket.response) {
-      await sendEmail({
+      sendEmail({
         to: updated.user.email,
         subject: `Update on Your Support Ticket: ${ticket.subject}`,
         html: `
@@ -328,7 +329,7 @@ export const updateSupportTicketStatus = async (req: AuthRequest, res: Response)
           </body>
           </html>
         `,
-      });
+      }).catch(err => console.error('Failed to send ticket response email:', err));
 
       // Create notification for the user
       await createNotification({
