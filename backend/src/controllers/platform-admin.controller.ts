@@ -2,6 +2,8 @@ import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import prisma from '../lib/prisma';
 import { sendEmail } from '../utils/email';
+import { createNotification } from '../services/notification.service';
+import { NotificationType } from '@prisma/client';
 
 export const getPlatformStats = async (req: AuthRequest, res: Response) => {
   try {
@@ -234,6 +236,8 @@ export const updateSupportTicket = async (req: AuthRequest, res: Response) => {
 
     // Send email notification if there's a response (non-blocking)
     if (response && response !== ticket.response) {
+      console.log(`[TICKET] Platform admin responded to ticket ${ticketId}, notifying user ${ticket.user.id}`);
+      
       sendEmail({
         to: updated.user.email,
         subject: `Update on Your Support Ticket: ${ticket.subject}`,
@@ -275,6 +279,19 @@ export const updateSupportTicket = async (req: AuthRequest, res: Response) => {
           </html>
         `,
       }).catch(err => console.error('Failed to send ticket response email:', err));
+
+      // Create notification for the user
+      console.log(`[TICKET] Creating notification for user ${ticket.user.id} (${updated.user.email})`);
+      await createNotification({
+        userId: ticket.user.id,
+        type: NotificationType.SUPPORT_TICKET,
+        title: `Support Team Responded to Your Ticket`,
+        message: `Your support ticket "${ticket.subject}" has been updated with a response from our team.`,
+        entityType: 'SupportTicket',
+        entityId: ticket.id,
+        sendEmail: false, // Email already sent above
+      });
+      console.log(`[TICKET] ✅ Notification created for user ${ticket.user.id}`);
     }
 
     res.json(updated);
