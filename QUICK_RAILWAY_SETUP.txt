@@ -1,0 +1,78 @@
+╔══════════════════════════════════════════════════════════════╗
+║         RAILWAY SMTP SETUP - QUICK CHECKLIST                 ║
+╚══════════════════════════════════════════════════════════════╝
+
+📋 WHAT YOU NEED TO DO:
+Add 7 variables to Railway so emails work in production
+
+🔗 WHERE TO GO:
+1. Open browser → https://railway.app
+2. Login to your account
+3. Find your project (LegalEdge / legaledge-backend-production)
+4. Click on the backend service (purple/blue box)
+5. Click "Variables" tab at the top
+
+➕ WHAT TO ADD (Do this 7 times):
+
+Variable #1:
+   Name: SMTP_HOST
+   Value: smtp.gmail.com
+
+Variable #2:
+   Name: SMTP_PORT
+   Value: 587
+
+Variable #3:
+   Name: SMTP_SECURE
+   Value: false
+
+Variable #4:
+   Name: SMTP_USER
+   Value: nexarfluxx@gmail.com
+
+Variable #5:
+   Name: SMTP_PASS
+   Value: ztzf oftd njpi rkka
+   ⚠️  IMPORTANT: Include the spaces exactly as shown
+
+Variable #6:
+   Name: SMTP_FROM_NAME
+   Value: LegalEdge
+
+Variable #7:
+   Name: SUPPORT_EMAIL
+   Value: nexarfluxx@gmail.com
+
+⏳ AFTER ADDING:
+- Railway will show "Deploying..." at the top
+- Wait 2-4 minutes for deployment to complete
+- You'll see a green checkmark when done
+
+✅ TO TEST:
+1. Go to: https://legal-edge-backend-frontend.vercel.app
+2. Login → Profile → Contact Support
+3. Create a test ticket
+4. Check nexarfluxx@gmail.com inbox for email
+
+❓ STUCK? COMMON ISSUES:
+
+"Can't find Variables tab"
+→ Make sure you clicked the SERVICE box (not just the project)
+→ Should see: Overview | Variables | Settings | Deployments | Logs
+
+"New Variable button is grayed out"
+→ You might not have permission
+→ Ask project owner to add you as collaborator
+
+"It's deploying forever"
+→ Wait 5 minutes
+→ Check "Logs" tab to see what's happening
+→ Check "Deployments" tab to see deployment status
+
+"I made a typo in a variable"
+→ Click on the variable to edit it
+→ Or delete it (trash icon) and add again
+
+Need more help? See: RAILWAY_EMAIL_SETUP.md (full guide)
+
+═══════════════════════════════════════════════════════════════

@@ -4,7 +4,7 @@ import * as notificationService from '../services/notification.service';
 
 export const getNotifications = async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user!.userId;
     const limit = parseInt(req.query.limit as string) || 50;
 
     const notifications = await notificationService.getUserNotifications(userId, limit);
@@ -17,7 +17,7 @@ export const getNotifications = async (req: AuthRequest, res: Response) => {
 
 export const getUnreadCount = async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user!.userId;
     const count = await notificationService.getUnreadCount(userId);
     res.json({ count });
   } catch (error) {
@@ -28,7 +28,7 @@ export const getUnreadCount = async (req: AuthRequest, res: Response) => {
 
 export const markAsRead = async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user!.userId;
     const { id } = req.params;
 
     const notification = await notificationService.markAsRead(id, userId);
@@ -41,7 +41,7 @@ export const markAsRead = async (req: AuthRequest, res: Response) => {
 
 export const markAllAsRead = async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user!.userId;
     await notificationService.markAllAsRead(userId);
     res.json({ message: 'All notifications marked as read' });
   } catch (error) {
@@ -52,7 +52,7 @@ export const markAllAsRead = async (req: AuthRequest, res: Response) => {
 
 export const deleteNotification = async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user!.userId;
     const { id } = req.params;
 
     await notificationService.deleteNotification(id, userId);

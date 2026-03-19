@@ -145,43 +145,32 @@ export const createSupportTicket = async (req: AuthRequest, res: Response) => {
       `,
     }).catch(err => console.error('Failed to send confirmation email:', err));
 
-    // Create notification for platform admins (only those without firm association or same firm)
+    // Create notification ONLY for PLATFORM_ADMIN (developer/software owner)
+    // Do NOT notify firm SUPER_ADMIN as they are firm owners, not platform owners
     const ticketCreatorFirmId = ticket.user.firmId;
     console.log(`[NOTIFICATION] Creating notifications for ticket from firm: ${ticketCreatorFirmId || 'NO FIRM'}`);
-    console.log(`[NOTIFICATION] Looking for PLATFORM_ADMIN users...`);
+    console.log(`[NOTIFICATION] Looking for PLATFORM_ADMIN users only...`);
     
-    let platformAdmins = await prisma.user.findMany({
+    const platformAdmins = await prisma.user.findMany({
       where: { 
         role: 'PLATFORM_ADMIN', 
         isActive: true,
-        OR: [
-          { firmId: null }, // Platform-level admins (no firm association)
-          ...(ticketCreatorFirmId ? [{ firmId: ticketCreatorFirmId }] : []), // Same firm admins (only if firmId exists)
-        ],
       },
       select: { id: true, email: true, firmId: true, role: true },
     });
 
-    // Fallback: If no PLATFORM_ADMIN found, notify SUPER_ADMIN from same firm
-    if (platformAdmins.length === 0 && ticketCreatorFirmId) {
-      console.log(`[NOTIFICATION] No PLATFORM_ADMIN found, looking for SUPER_ADMIN in same firm...`);
-      platformAdmins = await prisma.user.findMany({
-        where: {
-          role: 'SUPER_ADMIN',
-          firmId: ticketCreatorFirmId,
-          isActive: true,
-        },
-        select: { id: true, email: true, firmId: true, role: true },
-      });
-    }
-
-    console.log(`[NOTIFICATION] Found ${platformAdmins.length} admins to notify:`);
+    console.log(`[NOTIFICATION] Found ${platformAdmins.length} PLATFORM_ADMIN(s) to notify:`);
     platformAdmins.forEach(admin => {
       console.log(`  - ${admin.email} (role: ${admin.role}, firmId: ${admin.firmId || 'NULL'})`);
     });
     
+    if (platformAdmins.length === 0) {
+      console.log(`[NOTIFICATION] ⚠️ WARNING: No PLATFORM_ADMIN found! Support tickets will not be notified to anyone!`);
+      console.log(`[NOTIFICATION] Please promote a user to PLATFORM_ADMIN role.`);
+    }
+    
     for (const admin of platformAdmins) {
-      console.log(`[NOTIFICATION] Creating notification for admin: ${admin.email}`);
+      console.log(`[NOTIFICATION] Creating notification for PLATFORM_ADMIN: ${admin.email}`);
       await createNotification({
         userId: admin.id,
         type: NotificationType.SUPPORT_TICKET,
