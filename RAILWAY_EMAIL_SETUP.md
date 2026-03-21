@@ -20,7 +20,7 @@ SMTP_PORT=587
 SMTP_SECURE=false
 SMTP_USER=nexarfluxx@gmail.com
 SMTP_PASS=ztzf oftd njpi rkka
-SMTP_FROM_NAME=LegalEdge
+SMTP_FROM_NAME=Lawravel
 SUPPORT_EMAIL=nexarfluxx@gmail.com
 ```
 
@@ -37,7 +37,7 @@ SUPPORT_EMAIL=nexarfluxx@gmail.com
 **STEP 2: Find Your Project**
 1. Once logged in, you'll see your dashboard
 2. Look for your project - it might be named:
-   - `LegalEdge` or
+   - `Lawravel` or
    - `legaledge-backend-production` or
    - Your backend project name
 3. Click on the project card to open it
@@ -93,7 +93,7 @@ For each variable below, repeat these steps:
 **Sixth Variable - SMTP_FROM_NAME:**
 1. Click **"+ New Variable"**
 2. Variable Name: `SMTP_FROM_NAME`
-3. Value: `LegalEdge`
+3. Value: `Lawravel`
 4. Press Enter
 
 **Seventh Variable - SUPPORT_EMAIL:**
@@ -118,7 +118,7 @@ For each variable below, repeat these steps:
    ✅ SMTP_SECURE = false
    ✅ SMTP_USER = nexarfluxx@gmail.com
    ✅ SMTP_PASS = •••••••••••• (hidden for security)
-   ✅ SMTP_FROM_NAME = LegalEdge
+   ✅ SMTP_FROM_NAME = Lawravel
    ✅ SUPPORT_EMAIL = nexarfluxx@gmail.com
 
 **DONE!** ✅
@@ -167,7 +167,8 @@ npm install -g @railway/cli
 
 ## ✅ How to Test After Setup
 
-### Test 1: Check Railway Logs (Verify Variables Are Working)P_FROM_NAME=LegalEdge
+### Test 1: Check Railway Logs (Verify Variables Are Working)
+SMTP_FROM_NAME=Lawravel
 railway variables set SUPPORT_EMAIL=nexarfluxx@gmail.com
 
 # Deploy (automatic after variables are set)

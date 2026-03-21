@@ -1,4 +1,4 @@
-# 🚀 LegalEdge Deployment Guide
+# 🚀 Lawravel Deployment Guide
 
 ## Quick Deployment: Railway + Vercel
 
@@ -21,7 +21,7 @@ git init
 git add .
 
 # Commit
-git commit -m "Initial commit - LegalEdge platform"
+git commit -m "Initial commit - Lawravel platform"
 
 # Create a new repository on GitHub, then:
 git remote add origin https://github.com/YOUR_USERNAME/legaledge.git
@@ -67,7 +67,7 @@ SMTP_PORT=587
 SMTP_SECURE=false
 SMTP_USER=nexarfluxx@gmail.com
 SMTP_PASS=ztzf oftd njpi rkka
-SMTP_FROM_NAME=LegalEdge
+SMTP_FROM_NAME=Lawravel
 SUPPORT_EMAIL=nexarfluxx@gmail.com
 
 # Frontend URL (will update after Vercel deployment)
@@ -143,7 +143,7 @@ Follow the prompts:
 - Setup and deploy? **Y**
 - Which scope? Select your account
 - Link to existing project? **N**
-- Project name? **legaledge** (or your choice)
+   - Project name? **legaledge** (or your choice)
 - Directory? **./** (just press Enter)
 - Override settings? **N**
 
@@ -264,7 +264,7 @@ After deployment:
 
 ## 🎉 Success!
 
-Your LegalEdge platform should now be live at:
+Your Lawravel platform should now be live at:
 - **Frontend**: https://your-app.vercel.app
 - **Backend**: https://your-backend.up.railway.app
 

@@ -204,7 +204,7 @@ function HomePage() {
                 <path fillRule="evenodd" d="M3 6a3 3 0 013-3h10a1 1 0 01.8 1.6L14.25 8l2.55 3.4A1 1 0 0116 13H6a1 1 0 00-1 1v3a1 1 0 11-2 0V6z" clipRule="evenodd" />
               </svg>
             </div>
-            <span className="text-lg sm:text-2xl font-bold text-white tracking-tight">LegalEdge</span>
+            <span className="text-lg sm:text-2xl font-bold text-white tracking-tight">Lawravel</span>
           </div>
           <div className="flex gap-2 sm:gap-4">
             <a href="/login" className="px-3 sm:px-5 py-2 sm:py-2.5 text-sm sm:text-base text-white hover:text-amber-400 transition-colors font-medium">
@@ -436,7 +436,7 @@ function HomePage() {
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-5xl font-bold text-white mb-6">Ready to Transform Your Practice?</h2>
           <p className="text-xl text-slate-300 mb-10">
-            Join hundreds of law firms who have elevated their legal practice with LegalEdge
+            Join hundreds of law firms who have elevated their legal practice with Lawravel
           </p>
           <div className="flex flex-wrap gap-4 justify-center">
             <a href="/register" className="px-10 py-5 bg-gradient-to-r from-amber-500 to-yellow-600 text-slate-900 rounded-lg hover:from-amber-400 hover:to-yellow-500 transition-all font-bold text-xl shadow-2xl hover:shadow-amber-500/50 hover:scale-105 transform">
@@ -461,7 +461,7 @@ function HomePage() {
                     <path fillRule="evenodd" d="M3 6a3 3 0 013-3h10a1 1 0 01.8 1.6L14.25 8l2.55 3.4A1 1 0 0116 13H6a1 1 0 00-1 1v3a1 1 0 11-2 0V6z" clipRule="evenodd" />
                   </svg>
                 </div>
-                <span className="text-xl font-bold text-white">LegalEdge</span>
+                    <span className="text-xl font-bold text-white">Lawravel</span>
               </div>
               <p className="text-slate-400 text-sm">Enterprise legal management for modern law firms.</p>
             </div>
@@ -491,7 +491,7 @@ function HomePage() {
             </div>
           </div>
           <div className="border-t border-white/10 pt-8 text-center text-slate-500 text-sm">
-            © 2026 LegalEdge. All rights reserved. Empowering legal excellence worldwide.
+            © 2026 Lawravel. All rights reserved. Empowering legal excellence worldwide.
           </div>
         </div>
       </footer>
@@ -502,7 +502,7 @@ function HomePage() {
 // Layout component
 function Layout({ children }: { children: React.ReactNode }) {
   const { user, clearAuth } = useAuthStore();
-  const [firmName, setFirmName] = useState('LegalEdge');
+  const [firmName, setFirmName] = useState('Lawravel');
   const [showDropdown, setShowDropdown] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -512,7 +512,7 @@ function Layout({ children }: { children: React.ReactNode }) {
     if (user) {
       firmAPI.getDetails()
         .then(res => setFirmName(res.data.name))
-        .catch(() => setFirmName('LegalEdge'));
+        .catch(() => setFirmName('Lawravel'));
     }
   }, [user]);
   

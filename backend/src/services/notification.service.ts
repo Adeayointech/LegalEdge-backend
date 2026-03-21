@@ -77,7 +77,7 @@ export const sendNotificationEmail = async (notification: any) => {
       <div class="container">
         <div class="header">
           <h1 style="margin: 0;">🔔 New Notification</h1>
-          <p style="margin: 5px 0 0 0; opacity: 0.9;">LegalEdge</p>
+          <p style="margin: 5px 0 0 0; opacity: 0.9;">Lawravel</p>
         </div>
         
         <div class="content">
@@ -95,8 +95,8 @@ export const sendNotificationEmail = async (notification: any) => {
           </a>
           
           <div class="footer">
-            <p>This is an automated notification from LegalEdge</p>
-            <p>© ${new Date().getFullYear()} LegalEdge. All rights reserved.</p>
+            <p>This is an automated notification from Lawravel</p>
+            <p>© ${new Date().getFullYear()} Lawravel. All rights reserved.</p>
           </div>
         </div>
       </div>

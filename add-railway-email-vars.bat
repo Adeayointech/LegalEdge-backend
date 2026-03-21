@@ -10,7 +10,7 @@ railway variables set SMTP_PORT=587
 railway variables set SMTP_SECURE=false
 railway variables set SMTP_USER=nexarfluxx@gmail.com
 railway variables set "SMTP_PASS=ztzf oftd njpi rkka"
-railway variables set SMTP_FROM_NAME=LegalEdge
+railway variables set SMTP_FROM_NAME=Lawravel
 railway variables set SUPPORT_EMAIL=nexarfluxx@gmail.com
 
 echo.

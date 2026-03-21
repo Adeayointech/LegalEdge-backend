@@ -8,7 +8,7 @@ Add 7 variables to Railway so emails work in production
 🔗 WHERE TO GO:
 1. Open browser → https://railway.app
 2. Login to your account
-3. Find your project (LegalEdge / legaledge-backend-production)
+3. Find your project (Lawravel / legaledge-backend-production)
 4. Click on the backend service (purple/blue box)
 5. Click "Variables" tab at the top
 
@@ -37,7 +37,7 @@ Variable #5:
 
 Variable #6:
    Name: SMTP_FROM_NAME
-   Value: LegalEdge
+   Value: Lawravel
 
 Variable #7:
    Name: SUPPORT_EMAIL

@@ -53,7 +53,7 @@ SMTP_PORT=587
 SMTP_SECURE=false
 SMTP_USER=your-email@gmail.com
 SMTP_PASS=your-app-specific-password
-SMTP_FROM_NAME=LegalEdge
+SMTP_FROM_NAME=Lawravel
 SUPPORT_EMAIL=your-email@gmail.com
 ```
 
@@ -130,7 +130,7 @@ SMTP_PORT=587
 SMTP_SECURE=false
 SMTP_USER=your-email@gmail.com
 SMTP_PASS=your-app-password
-SMTP_FROM_NAME=LegalEdge
+SMTP_FROM_NAME=Lawravel
 SUPPORT_EMAIL=your-email@gmail.com
 ```
 

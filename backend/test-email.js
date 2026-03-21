@@ -58,10 +58,10 @@ async function testEmail() {
     console.log(`📨 Sending test email to ${testEmail}...`);
     
     const info = await transporter.sendMail({
-      from: `"${process.env.SMTP_FROM_NAME || 'LegalEdge'}" <${process.env.SMTP_USER}>`,
+        from: `"${process.env.SMTP_FROM_NAME || 'Lawravel'}" <${process.env.SMTP_USER}>`,
       to: testEmail,
-      subject: '✅ Test Email - LegalEdge SMTP Configuration',
-      text: 'This is a test email from LegalEdge platform. If you received this, your SMTP configuration is working correctly!',
+        subject: '✅ Test Email - Lawravel SMTP Configuration',
+        text: 'This is a test email from Lawravel platform. If you received this, your SMTP configuration is working correctly!',
       html: `
         <!DOCTYPE html>
         <html>
@@ -84,12 +84,12 @@ async function testEmail() {
               <div class="success">
                 <strong>Congratulations!</strong> Your email configuration is working correctly.
               </div>
-              <p>This is a test email from the LegalEdge platform.</p>
+                <p>This is a test email from the Lawravel platform.</p>
               <p><strong>Configuration Details:</strong></p>
               <ul>
                 <li>SMTP Host: ${process.env.SMTP_HOST}</li>
                 <li>SMTP Port: ${port}</li>
-                <li>From: ${process.env.SMTP_FROM_NAME || 'LegalEdge'}</li>
+                  <li>From: ${process.env.SMTP_FROM_NAME || 'Lawravel'}</li>
               </ul>
               <p>All email notifications from the platform will now be sent successfully:</p>
               <ul>
@@ -99,7 +99,7 @@ async function testEmail() {
                 <li>✅ Welcome emails</li>
               </ul>
               <div class="footer">
-                <p>LegalEdge Platform - Legal Practice Management</p>
+                  <p>Lawravel Platform - Legal Practice Management</p>
                 <p>Test sent at: ${new Date().toLocaleString()}</p>
               </div>
             </div>

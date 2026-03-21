@@ -3,7 +3,7 @@ import QRCode from 'qrcode';
 
 export const generateTwoFactorSecret = (email: string) => {
   const secret = speakeasy.generateSecret({
-    name: `LegalEdge (${email})`,
+    name: `Lawravel (${email})`,
     length: 32,
   });
   

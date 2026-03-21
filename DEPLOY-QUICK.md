@@ -8,7 +8,7 @@
    ```bash
    git init
    git add .
-   git commit -m "Deploy LegalEdge"
+   git commit -m "Deploy Lawravel"
    git remote add origin https://github.com/YOUR_USERNAME/legaledge.git
    git push -u origin main
    ```

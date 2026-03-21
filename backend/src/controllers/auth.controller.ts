@@ -151,7 +151,7 @@ export const register = async (req: Request, res: Response) => {
     // Send welcome email to the user
     await sendEmail({
       to: user.email,
-      subject: 'Welcome to LegalEdge Platform',
+      subject: 'Welcome to Lawravel Platform',
       html: `
         <!DOCTYPE html>
         <html>
@@ -166,17 +166,17 @@ export const register = async (req: Request, res: Response) => {
         <body>
           <div class="container">
             <div class="header">
-              <h1 style="margin: 0;">Welcome to LegalEdge!</h1>
+              <h1 style="margin: 0;">Welcome to Lawravel!</h1>
             </div>
             <div class="content">
               <p>Hello ${user.firstName},</p>
-              <p>Welcome to LegalEdge - Your complete legal practice management solution.</p>
+              <p>Welcome to Lawravel - Your complete legal practice management solution.</p>
               ${isApproved ? 
                 '<p>Your account is now active and you can start using the platform right away.</p>' : 
                 '<p>Your account has been created successfully. An administrator will review and approve your account shortly.</p>'
               }
               <p>If you have any questions, please contact our support team.</p>
-              <p>Best regards,<br>The LegalEdge Team</p>
+              <p>Best regards,<br>The Lawravel Team</p>
             </div>
           </div>
         </body>

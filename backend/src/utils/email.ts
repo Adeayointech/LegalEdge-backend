@@ -61,8 +61,8 @@ export const sendEmail = async (options: EmailOptions): Promise<boolean> => {
     console.log('[EMAIL] Sending email via SMTP...');
     
     // Set a timeout to prevent hanging (15 second timeout)
-    const sendPromise = transporter.sendMail({
-      from: `"${process.env.SMTP_FROM_NAME || 'LegalEdge'}" <${process.env.SMTP_USER}>`,
+      const sendPromise = transporter.sendMail({
+        from: `"${process.env.SMTP_FROM_NAME || 'Lawravel'}" <${process.env.SMTP_USER}>`,
       to: options.to,
       subject: options.subject,
       text: options.text,
@@ -160,8 +160,8 @@ export const sendDeadlineReminder = async (
           </p>
         </div>
         <div class="footer">
-          <p>This is an automated reminder from your LegalEdge.</p>
-          <p>© ${new Date().getFullYear()} LegalEdge. All rights reserved.</p>
+          <p>This is an automated reminder from your Lawravel.</p>
+          <p>© ${new Date().getFullYear()} Lawravel. All rights reserved.</p>
         </div>
       </div>
     </body>
@@ -238,7 +238,7 @@ export const sendWelcomeEmail = async (
           <p>If you have any questions or need assistance, don't hesitate to reach out to your system administrator.</p>
         </div>
         <div class="footer">
-          <p>© ${new Date().getFullYear()} LegalEdge. All rights reserved.</p>
+          <p>© ${new Date().getFullYear()} Lawravel. All rights reserved.</p>
         </div>
       </div>
     </body>
@@ -323,9 +323,9 @@ export const sendCaseAssignmentEmail = async (
             </a>
           </p>
         </div>
-        <div class="footer">
-          <p>This is an automated notification from your LegalEdge.</p>
-          <p>© ${new Date().getFullYear()} LegalEdge. All rights reserved.</p>
+          <div class="footer">
+          <p>This is an automated notification from your Lawravel.</p>
+          <p>© ${new Date().getFullYear()} Lawravel. All rights reserved.</p>
         </div>
       </div>
     </body>
@@ -439,8 +439,8 @@ export const sendHearingReminder = async (
           </p>
         </div>
         <div class="footer">
-          <p>This is an automated reminder from your LegalEdge.</p>
-          <p>© ${new Date().getFullYear()} LegalEdge. All rights reserved.</p>
+            <p>This is an automated reminder from your Lawravel.</p>
+          <p>© ${new Date().getFullYear()} Lawravel. All rights reserved.</p>
         </div>
       </div>
     </body>
