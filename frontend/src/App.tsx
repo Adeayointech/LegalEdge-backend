@@ -204,7 +204,7 @@ function HomePage() {
                 <path fillRule="evenodd" d="M3 6a3 3 0 013-3h10a1 1 0 01.8 1.6L14.25 8l2.55 3.4A1 1 0 0116 13H6a1 1 0 00-1 1v3a1 1 0 11-2 0V6z" clipRule="evenodd" />
               </svg>
             </div>
-            <span className="text-lg sm:text-2xl font-bold text-white tracking-tight">Lawravel</span>
+            <span className="heading-font text-lg sm:text-2xl font-bold text-white tracking-tight">Lawravel</span>
           </div>
           <div className="flex gap-2 sm:gap-4">
             <a href="/login" className="px-3 sm:px-5 py-2 sm:py-2.5 text-sm sm:text-base text-white hover:text-amber-400 transition-colors font-medium">
@@ -461,7 +461,7 @@ function HomePage() {
                     <path fillRule="evenodd" d="M3 6a3 3 0 013-3h10a1 1 0 01.8 1.6L14.25 8l2.55 3.4A1 1 0 0116 13H6a1 1 0 00-1 1v3a1 1 0 11-2 0V6z" clipRule="evenodd" />
                   </svg>
                 </div>
-                    <span className="text-xl font-bold text-white">Lawravel</span>
+                    <span className="heading-font text-xl font-bold text-white">Lawravel</span>
               </div>
               <p className="text-slate-400 text-sm">Enterprise legal management for modern law firms.</p>
             </div>
