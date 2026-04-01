@@ -65,26 +65,26 @@ export function CalendarView() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Calendar</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Upcoming hearings and deadlines</p>
+          <h1 className="text-2xl font-bold text-white heading-font">Calendar</h1>
+          <p className="text-sm text-slate-400 mt-0.5">Upcoming hearings and deadlines</p>
         </div>
         <div className="flex items-center gap-3">
           <button
             onClick={handlePrev}
-            className="p-2 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
+            className="p-2 rounded-lg border border-white/20 hover:bg-white/10 transition-colors"
             aria-label="Previous month"
           >
-            <ChevronLeft className="w-4 h-4 text-gray-600" />
+            <ChevronLeft className="w-4 h-4 text-slate-300" />
           </button>
-          <span className="text-base font-semibold text-gray-900 min-w-[160px] text-center">
+          <span className="text-base font-semibold text-white min-w-[160px] text-center">
             {MONTHS[month - 1]} {year}
           </span>
           <button
             onClick={handleNext}
-            className="p-2 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
+            className="p-2 rounded-lg border border-white/20 hover:bg-white/10 transition-colors"
             aria-label="Next month"
           >
-            <ChevronRight className="w-4 h-4 text-gray-600" />
+            <ChevronRight className="w-4 h-4 text-slate-300" />
           </button>
         </div>
       </div>

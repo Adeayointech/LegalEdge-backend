@@ -142,8 +142,8 @@ export function PlatformAdmin() {
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
-      <h1 className="text-3xl font-bold text-gray-900 mb-2">Platform Admin Dashboard</h1>
-      <p className="text-gray-600 mb-6">Manage all chambers and support tickets</p>
+      <h1 className="text-3xl font-bold text-white heading-font mb-2">Platform Admin Dashboard</h1>
+      <p className="text-slate-400 mb-6">Manage all chambers and support tickets</p>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
