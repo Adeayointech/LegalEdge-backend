@@ -319,7 +319,34 @@ export const updateCase = async (req: AuthRequest, res: Response) => {
     }
 
     const { id } = req.params;
-    const updateData = req.body;
+
+    // Whitelist only fields a user is allowed to update — prevents mass assignment
+    const {
+      title,
+      suitNumber,
+      caseType,
+      status,
+      description,
+      filingDate,
+      closedDate,
+      courtName,
+      judgeName,
+      opposingCounsel,
+      clientId,
+    } = req.body;
+
+    const updateData: Record<string, any> = {};
+    if (title !== undefined) updateData.title = title;
+    if (suitNumber !== undefined) updateData.suitNumber = suitNumber;
+    if (caseType !== undefined) updateData.caseType = caseType;
+    if (status !== undefined) updateData.status = status;
+    if (description !== undefined) updateData.description = description;
+    if (courtName !== undefined) updateData.courtName = courtName;
+    if (judgeName !== undefined) updateData.judgeName = judgeName;
+    if (opposingCounsel !== undefined) updateData.opposingCounsel = opposingCounsel;
+    if (clientId !== undefined) updateData.clientId = clientId;
+    if (filingDate !== undefined) updateData.filingDate = new Date(filingDate);
+    if (closedDate !== undefined) updateData.closedDate = new Date(closedDate);
 
     // Verify case exists and belongs to user's firm
     const existingCase = await prisma.case.findFirst({
@@ -336,11 +363,7 @@ export const updateCase = async (req: AuthRequest, res: Response) => {
     // Update case
     const updatedCase = await prisma.case.update({
       where: { id },
-      data: {
-        ...updateData,
-        filingDate: updateData.filingDate ? new Date(updateData.filingDate) : undefined,
-        closedDate: updateData.closedDate ? new Date(updateData.closedDate) : undefined,
-      },
+      data: updateData,
       include: {
         client: true,
         assignedLawyers: {

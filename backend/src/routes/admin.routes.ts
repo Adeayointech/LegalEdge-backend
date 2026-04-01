@@ -5,50 +5,47 @@ import { Response } from 'express';
 
 const router = express.Router();
 
-// Special endpoint to promote yourself to PLATFORM_ADMIN
-// Requires authentication + secret promotion code
-router.post('/promote-to-platform-admin', authenticate, async (req: AuthRequest, res: Response) => {
+// One-time bootstrap: promote a user to PLATFORM_ADMIN.
+// This endpoint is disabled once any PLATFORM_ADMIN exists in the database.
+// Requires: valid JWT + BOOTSTRAP_ADMIN_SECRET env var (no default).
+router.post('/bootstrap-platform-admin', authenticate, async (req: AuthRequest, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({ error: 'Authentication required' });
     }
 
-    const { promotionCode } = req.body;
-
-    // Secret code - change this to something secure
-    const PROMOTION_SECRET = process.env.PROMOTION_SECRET || 'PROMOTE_ME_2024';
-
-    if (promotionCode !== PROMOTION_SECRET) {
-      return res.status(403).json({ error: 'Invalid promotion code' });
+    // Fail fast if the secret is not configured in environment
+    const secret = process.env.BOOTSTRAP_ADMIN_SECRET;
+    if (!secret || secret.length < 20) {
+      return res.status(503).json({ error: 'Bootstrap not available' });
     }
 
-    // Update user to PLATFORM_ADMIN
+    const { bootstrapSecret } = req.body;
+    if (!bootstrapSecret || bootstrapSecret !== secret) {
+      console.warn(`[BOOTSTRAP] Failed attempt by userId=${req.user.userId}`);
+      return res.status(403).json({ error: 'Invalid bootstrap secret' });
+    }
+
+    // Disable this endpoint once a PLATFORM_ADMIN already exists
+    const existingAdmin = await prisma.user.findFirst({
+      where: { role: 'PLATFORM_ADMIN' },
+    });
+    if (existingAdmin) {
+      return res.status(403).json({ error: 'Bootstrap not available' });
+    }
+
     const updatedUser = await prisma.user.update({
       where: { id: req.user.userId },
-      data: {
-        role: 'PLATFORM_ADMIN',
-        isApproved: true,
-      },
-      select: {
-        id: true,
-        email: true,
-        firstName: true,
-        lastName: true,
-        role: true,
-        isApproved: true,
-      },
+      data: { role: 'PLATFORM_ADMIN', isApproved: true },
+      select: { id: true, email: true, firstName: true, lastName: true, role: true },
     });
 
-    console.log(`✅ User ${updatedUser.email} promoted to PLATFORM_ADMIN`);
+    console.log(`[BOOTSTRAP] ${updatedUser.email} promoted to PLATFORM_ADMIN`);
 
-    res.json({
-      success: true,
-      message: 'Successfully promoted to PLATFORM_ADMIN',
-      user: updatedUser,
-    });
+    res.json({ success: true, user: updatedUser });
   } catch (error) {
-    console.error('Promotion error:', error);
-    res.status(500).json({ error: 'Failed to promote user' });
+    console.error('Bootstrap error:', error);
+    res.status(500).json({ error: 'Bootstrap failed' });
   }
 });
 

@@ -23,9 +23,14 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
 
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (mobile apps, Postman, etc.)
-    if (!origin) return callback(null, true);
-    
+    // In production, block requests with no Origin header (scripts, Postman)
+    if (!origin) {
+      if (process.env.NODE_ENV === 'production') {
+        return callback(new Error('Direct API access not allowed'));
+      }
+      return callback(null, true); // allow in development
+    }
+
     if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
@@ -38,12 +43,23 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
-// Rate limiting
+// Global rate limiting
 const limiter = rateLimit({
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW || '15') * 60 * 1000,
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100')
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100'),
+  standardHeaders: true,
+  legacyHeaders: false,
 });
 app.use(limiter);
+
+// Strict rate limiting for auth endpoints (brute-force protection)
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10,                   // 10 attempts per window
+  message: { error: 'Too many attempts, please try again later' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
@@ -76,7 +92,7 @@ import notificationRoutes from './routes/notification.routes';
 import adminRoutes from './routes/admin.routes';
 import { initializeSchedulers } from './utils/scheduler';
 
-app.use('/api/auth', authRoutes);
+app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/cases', caseRoutes);
 app.use('/api/clients', clientRoutes);
