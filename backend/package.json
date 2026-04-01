@@ -30,6 +30,7 @@
     "node-cron": "^4.2.1",
     "nodemailer": "^6.10.1",
     "qrcode": "^1.5.3",
+    "resend": "^6.10.0",
     "speakeasy": "^2.0.0",
     "winston": "^3.13.0"
   },
@@ -42,6 +43,9 @@
     "@types/node": "^20.12.7",
     "@types/nodemailer": "^6.4.22",
     "@types/qrcode": "^1.5.5",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@types/react-router-dom": "^5.3.3",
     "@types/speakeasy": "^2.0.10",
     "prisma": "^5.22.0",
     "tsx": "^4.7.2",

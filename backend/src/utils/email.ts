@@ -1,5 +1,6 @@
 import { Deadline } from '@prisma/client';
 import nodemailer, { Transporter } from 'nodemailer';
+import { Resend } from 'resend';
 
 export interface EmailOptions {
   to: string;
@@ -8,6 +9,28 @@ export interface EmailOptions {
   text?: string;
 }
 
+// ── Resend (preferred — no SMTP port issues on cloud hosts) ──────────────────
+const sendViaResend = async (options: EmailOptions): Promise<boolean> => {
+  const resend = new Resend(process.env.RESEND_API_KEY!);
+  const fromName = process.env.SMTP_FROM_NAME || 'Lawravel';
+  const fromEmail = process.env.RESEND_FROM_EMAIL || process.env.SUPPORT_EMAIL || 'onboarding@resend.dev';
+
+  const { error } = await resend.emails.send({
+    from: `${fromName} <${fromEmail}>`,
+    to: options.to,
+    subject: options.subject,
+    html: options.html,
+    text: options.text,
+  });
+
+  if (error) {
+    console.error('[EMAIL] Resend error:', error);
+    return false;
+  }
+  return true;
+};
+
+// ── Nodemailer (SMTP fallback for local dev) ─────────────────────────────────
 const createTransporter = (): Transporter | null => {
   if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
     return null;
@@ -16,22 +39,18 @@ const createTransporter = (): Transporter | null => {
   try {
     const port = parseInt(process.env.SMTP_PORT || '587');
     const secure = process.env.SMTP_SECURE === 'true' || port === 465;
-    
-    // Remove spaces from password (Gmail App Passwords often have spaces but shouldn't in config)
     const password = process.env.SMTP_PASS.replace(/\s/g, '');
     
     return nodemailer.createTransport({
       host: process.env.SMTP_HOST || 'smtp.gmail.com',
       port: port,
-      secure: secure, // true for 465, false for 587
+      secure: secure,
       auth: {
         user: process.env.SMTP_USER,
         pass: password,
       },
-      tls: {
-        rejectUnauthorized: false // Allow self-signed certificates
-      },
-      connectionTimeout: 10000, // 10 second timeout
+      tls: { rejectUnauthorized: false },
+      connectionTimeout: 10000,
       greetingTimeout: 10000,
     });
   } catch (error) {
@@ -41,41 +60,56 @@ const createTransporter = (): Transporter | null => {
 };
 
 export const sendEmail = async (options: EmailOptions): Promise<boolean> => {
-  try {
-    console.log('[EMAIL] Attempting to send email to:', options.to);
-    console.log('[EMAIL] SMTP User configured:', process.env.SMTP_USER ? 'YES' : 'NO');
-    console.log('[EMAIL] SMTP Pass configured:', process.env.SMTP_PASS ? 'YES' : 'NO');
-    
-    // Skip if email credentials not configured
-    if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-      console.log('[EMAIL] ❌ Email not sent: SMTP credentials not configured');
+  console.log('[EMAIL] Attempting to send email to:', options.to);
+
+  // Prefer Resend when API key is available (production)
+  if (process.env.RESEND_API_KEY) {
+    console.log('[EMAIL] Sending via Resend...');
+    try {
+      const ok = await sendViaResend(options);
+      if (ok) {
+        console.log(`[EMAIL] ✅ Email sent via Resend to ${options.to}`);
+      } else {
+        console.error('[EMAIL] ❌ Resend send failed');
+      }
+      return ok;
+    } catch (error: any) {
+      console.error('[EMAIL] ❌ Resend error:', error.message || error);
       return false;
     }
+  }
 
+  // Fallback: SMTP via nodemailer (local dev)
+  console.log('[EMAIL] RESEND_API_KEY not set, falling back to SMTP...');
+  console.log('[EMAIL] SMTP User configured:', process.env.SMTP_USER ? 'YES' : 'NO');
+  console.log('[EMAIL] SMTP Pass configured:', process.env.SMTP_PASS ? 'YES' : 'NO');
+
+  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+    console.log('[EMAIL] ❌ Email not sent: no credentials configured');
+    return false;
+  }
+
+  try {
     const transporter = createTransporter();
     if (!transporter) {
       console.log('[EMAIL] ❌ Email not sent: Failed to create transporter');
       return false;
     }
 
-    console.log('[EMAIL] Sending email via SMTP...');
-    
-    // Set a timeout to prevent hanging (15 second timeout)
-      const sendPromise = transporter.sendMail({
-        from: `"${process.env.SMTP_FROM_NAME || 'Lawravel'}" <${process.env.SMTP_USER}>`,
+    const sendPromise = transporter.sendMail({
+      from: `"${process.env.SMTP_FROM_NAME || 'Lawravel'}" <${process.env.SMTP_USER}>`,
       to: options.to,
       subject: options.subject,
       text: options.text,
       html: options.html,
     });
-    
+
     const timeoutPromise = new Promise<never>((_, reject) =>
       setTimeout(() => reject(new Error('Email send timeout after 15 seconds')), 15000)
     );
-    
-    const info: any = await Promise.race([sendPromise, timeoutPromise]);
 
-    console.log(`[EMAIL] ✅ Email sent successfully to ${options.to}`);
+    const info: any = await Promise.race([sendPromise, timeoutPromise]);
+    console.log(`[EMAIL] ✅ Email sent via SMTP to ${options.to}`);
     console.log(`[EMAIL] Message ID: ${info.messageId}`);
     return true;
   } catch (error: any) {
