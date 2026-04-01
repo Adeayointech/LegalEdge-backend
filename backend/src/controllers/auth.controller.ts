@@ -484,3 +484,100 @@ export const disableTwoFactor = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ error: 'Failed to disable 2FA' });
   }
 };
+
+// ── Forgot Password ────────────────────────────────────────────────────────
+export const forgotPassword = async (req: Request, res: Response) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' });
+    }
+
+    // Always return success to prevent email enumeration
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) {
+      return res.json({ message: 'If that email is registered, a reset link has been sent.' });
+    }
+
+    // Generate a cryptographically secure token
+    const crypto = await import('crypto');
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { passwordResetToken: token, passwordResetExpiry: expiry },
+    });
+
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const resetLink = `${frontendUrl}/reset-password?token=${token}`;
+
+    await sendEmail({
+      to: user.email,
+      subject: 'Reset Your Lawravel Password',
+      html: `
+        <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;background:#f9f9f9;border-radius:8px;">
+          <h2 style="color:#1e3a5f;margin-top:0;">Password Reset Request</h2>
+          <p>Hi ${user.firstName},</p>
+          <p>We received a request to reset your password. Click the button below — this link expires in <strong>1 hour</strong>.</p>
+          <div style="text-align:center;margin:32px 0;">
+            <a href="${resetLink}" style="background:#1e3a5f;color:#fff;padding:14px 28px;border-radius:6px;text-decoration:none;font-weight:bold;display:inline-block;">Reset Password</a>
+          </div>
+          <p style="color:#666;font-size:13px;">If you didn't request this, you can safely ignore this email. Your password will not change.</p>
+          <hr style="border:none;border-top:1px solid #ddd;margin:24px 0;" />
+          <p style="color:#999;font-size:12px;text-align:center;">Lawravel • Legal Practice Management</p>
+        </div>
+      `,
+      text: `Reset your Lawravel password: ${resetLink}\n\nThis link expires in 1 hour.`,
+    });
+
+    res.json({ message: 'If that email is registered, a reset link has been sent.' });
+  } catch (error) {
+    console.error('Forgot password error:', error);
+    res.status(500).json({ error: 'Failed to process request' });
+  }
+};
+
+// ── Reset Password ─────────────────────────────────────────────────────────
+export const resetPassword = async (req: Request, res: Response) => {
+  try {
+    const { token, password } = req.body;
+    if (!token || !password) {
+      return res.status(400).json({ error: 'Token and new password are required' });
+    }
+
+    const passwordValidation = validatePasswordStrength(password);
+    if (!passwordValidation.valid) {
+      return res.status(400).json({ error: passwordValidation.message });
+    }
+
+    const user = await prisma.user.findFirst({
+      where: {
+        passwordResetToken: token,
+        passwordResetExpiry: { gt: new Date() },
+      },
+    });
+
+    if (!user) {
+      return res.status(400).json({ error: 'Invalid or expired reset token' });
+    }
+
+    const hashedPassword = await hashPassword(password);
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        password: hashedPassword,
+        passwordResetToken: null,
+        passwordResetExpiry: null,
+      },
+    });
+
+    await createAuditLog('UPDATE', 'User', user.id, user.id, 'Password reset via email token', undefined, req as any);
+
+    res.json({ message: 'Password reset successfully. You can now log in.' });
+  } catch (error) {
+    console.error('Reset password error:', error);
+    res.status(500).json({ error: 'Failed to reset password' });
+  }
+};

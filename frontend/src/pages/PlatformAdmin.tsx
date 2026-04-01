@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
-import { Building2, Users, Ticket, Filter, MessageSquare, CheckCircle, Clock, XCircle, Eye, Calendar, AlertCircle } from 'lucide-react';
+import { Building2, Users, Filter, XCircle, Eye, Calendar, AlertCircle, ShieldOff, ShieldCheck } from 'lucide-react';
 
 export function PlatformAdmin() {
   const queryClient = useQueryClient();
@@ -12,6 +12,7 @@ export function PlatformAdmin() {
   const [response, setResponse] = useState('');
   const [newStatus, setNewStatus] = useState('');
   const [viewingFirmId, setViewingFirmId] = useState<string | null>(null);
+  const [suspendingFirmId, setSuspendingFirmId] = useState<string | null>(null);
 
   // Fetch platform stats
   const { data: stats } = useQuery({
@@ -77,6 +78,33 @@ export function PlatformAdmin() {
     },
   });
 
+  // Suspend firm mutation
+  const suspendMutation = useMutation({
+    mutationFn: async (firmId: string) => api.patch(`/platform-admin/firms/${firmId}/suspend`),
+    onSuccess: (_, firmId) => {
+      queryClient.invalidateQueries({ queryKey: ['platform-firms'] });
+      queryClient.invalidateQueries({ queryKey: ['platform-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['firm-details', firmId] });
+      setSuspendingFirmId(null);
+    },
+    onError: (err: any) => {
+      alert(err?.response?.data?.error || 'Failed to suspend firm');
+    },
+  });
+
+  // Unsuspend firm mutation
+  const unsuspendMutation = useMutation({
+    mutationFn: async (firmId: string) => api.patch(`/platform-admin/firms/${firmId}/unsuspend`),
+    onSuccess: (_, firmId) => {
+      queryClient.invalidateQueries({ queryKey: ['platform-firms'] });
+      queryClient.invalidateQueries({ queryKey: ['platform-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['firm-details', firmId] });
+    },
+    onError: (err: any) => {
+      alert(err?.response?.data?.error || 'Failed to reactivate firm');
+    },
+  });
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -124,6 +152,7 @@ export function PlatformAdmin() {
             <div>
               <p className="text-sm text-gray-600">Total Chambers</p>
               <p className="text-2xl font-bold text-gray-900">{stats?.totalFirms || 0}</p>
+              <p className="text-xs text-green-600 mt-1">+{stats?.newFirmsThisMonth || 0} this month</p>
             </div>
             <Building2 className="w-8 h-8 text-blue-600" />
           </div>
@@ -132,8 +161,9 @@ export function PlatformAdmin() {
         <div className="bg-white p-6 rounded-lg shadow">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Total Users</p>
-              <p className="text-2xl font-bold text-gray-900">{stats?.totalUsers || 0}</p>
+              <p className="text-sm text-gray-600">Active Users</p>
+              <p className="text-2xl font-bold text-gray-900">{stats?.activeUsers || 0}</p>
+              <p className="text-xs text-gray-500 mt-1">{stats?.totalUsers || 0} total registered</p>
             </div>
             <Users className="w-8 h-8 text-green-600" />
           </div>
@@ -142,20 +172,22 @@ export function PlatformAdmin() {
         <div className="bg-white p-6 rounded-lg shadow">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Total Tickets</p>
-              <p className="text-2xl font-bold text-gray-900">{stats?.totalTickets || 0}</p>
+              <p className="text-sm text-gray-600">Open Tickets</p>
+              <p className="text-2xl font-bold text-gray-900">{stats?.openTickets || 0}</p>
+              <p className="text-xs text-gray-500 mt-1">{stats?.totalTickets || 0} total tickets</p>
             </div>
-            <Ticket className="w-8 h-8 text-purple-600" />
+            <AlertCircle className="w-8 h-8 text-orange-600" />
           </div>
         </div>
 
         <div className="bg-white p-6 rounded-lg shadow">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Open Tickets</p>
-              <p className="text-2xl font-bold text-gray-900">{stats?.openTickets || 0}</p>
+              <p className="text-sm text-gray-600">Suspended</p>
+              <p className="text-2xl font-bold text-gray-900">{stats?.suspendedFirms || 0}</p>
+              <p className="text-xs text-green-600 mt-1">{stats?.activeFirms || 0} active chambers</p>
             </div>
-            <AlertCircle className="w-8 h-8 text-orange-600" />
+            <ShieldOff className="w-8 h-8 text-red-500" />
           </div>
         </div>
       </div>
@@ -174,13 +206,14 @@ export function PlatformAdmin() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Contact</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Staff</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Branches</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Joined</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
               {firms.map((firm: any) => (
-                <tr key={firm.id} className="hover:bg-gray-50">
+                <tr key={firm.id} className={`hover:bg-gray-50 ${!firm.isActive ? 'opacity-60' : ''}`}>
                   <td className="px-6 py-4">
                     <div className="font-medium text-gray-900">{firm.name}</div>
                     <div className="text-sm text-gray-500">{firm.email}</div>
@@ -201,6 +234,11 @@ export function PlatformAdmin() {
                   <td className="px-6 py-4 text-sm text-gray-700">
                     {firm._count.branches}
                   </td>
+                  <td className="px-6 py-4">
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${firm.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                      {firm.isActive ? 'Active' : 'Suspended'}
+                    </span>
+                  </td>
                   <td className="px-6 py-4 text-sm text-gray-700">
                     <div className="flex items-center gap-2">
                       <Calendar className="w-4 h-4 text-gray-500" />
@@ -208,13 +246,33 @@ export function PlatformAdmin() {
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <button
-                      onClick={() => setViewingFirmId(firm.id)}
-                      className="flex items-center gap-1 text-blue-600 hover:text-blue-800 text-sm font-medium"
-                    >
-                      <Eye className="w-4 h-4" />
-                      View Details
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setViewingFirmId(firm.id)}
+                        className="flex items-center gap-1 text-blue-600 hover:text-blue-800 text-sm font-medium"
+                      >
+                        <Eye className="w-4 h-4" />
+                        View
+                      </button>
+                      {firm.isActive ? (
+                        <button
+                          onClick={() => setSuspendingFirmId(firm.id)}
+                          className="flex items-center gap-1 text-red-600 hover:text-red-800 text-sm font-medium"
+                        >
+                          <ShieldOff className="w-4 h-4" />
+                          Suspend
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => unsuspendMutation.mutate(firm.id)}
+                          disabled={unsuspendMutation.isPending}
+                          className="flex items-center gap-1 text-green-600 hover:text-green-800 text-sm font-medium disabled:opacity-50"
+                        >
+                          <ShieldCheck className="w-4 h-4" />
+                          Reactivate
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -392,6 +450,39 @@ export function PlatformAdmin() {
           )}
         </div>
       </div>
+
+      {/* Suspend Confirmation Modal */}
+      {suspendingFirmId && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-md w-full p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <ShieldOff className="w-8 h-8 text-red-500" />
+              <h2 className="text-xl font-bold text-gray-900">Suspend Chamber?</h2>
+            </div>
+            <p className="text-gray-600 mb-2">
+              You are about to suspend <strong>{firms.find((f: any) => f.id === suspendingFirmId)?.name}</strong>.
+            </p>
+            <p className="text-sm text-gray-500 mb-6">
+              Their users will not be able to access the platform. You can reactivate them at any time.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => suspendMutation.mutate(suspendingFirmId)}
+                disabled={suspendMutation.isPending}
+                className="flex-1 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg disabled:opacity-50"
+              >
+                {suspendMutation.isPending ? 'Suspending...' : 'Yes, Suspend'}
+              </button>
+              <button
+                onClick={() => setSuspendingFirmId(null)}
+                className="flex-1 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium rounded-lg"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Firm Details Modal */}
       {viewingFirmId && firmDetails && (

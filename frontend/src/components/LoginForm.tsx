@@ -130,7 +130,13 @@ export function LoginForm() {
           </button>
         </form>
 
-        <p className="mt-6 text-center text-slate-400">
+        <p className="mt-4 text-center">
+          <a href="/forgot-password" className="text-slate-400 hover:text-amber-400 text-sm transition-colors">
+            Forgot your password?
+          </a>
+        </p>
+
+        <p className="mt-3 text-center text-slate-400">
           Don't have an account?{' '}
           <a href="/register" className="text-amber-400 hover:text-amber-300 font-semibold transition-colors">
             Register

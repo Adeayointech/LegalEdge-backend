@@ -26,6 +26,22 @@ router.post(
   authController.login
 );
 
+// Password reset (public — no auth needed)
+router.post(
+  '/forgot-password',
+  [body('email').isEmail().normalizeEmail()],
+  authController.forgotPassword
+);
+
+router.post(
+  '/reset-password',
+  [
+    body('token').notEmpty(),
+    body('password').isLength({ min: 8 }),
+  ],
+  authController.resetPassword
+);
+
 // Protected routes
 router.get('/profile', authenticate, authController.getProfile);
 

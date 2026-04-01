@@ -11,18 +11,29 @@ export const getPlatformStats = async (req: AuthRequest, res: Response) => {
       return res.status(403).json({ error: 'Access denied. Platform Admin only.' });
     }
 
-    const [totalFirms, totalUsers, totalTickets, openTickets] = await Promise.all([
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const [totalFirms, activeFirms, suspendedFirms, totalUsers, activeUsers, totalTickets, openTickets, newFirmsThisMonth] = await Promise.all([
       prisma.firm.count(),
-      prisma.user.count(),
+      prisma.firm.count({ where: { isActive: true } }),
+      prisma.firm.count({ where: { isActive: false } }),
+      prisma.user.count({ where: { role: { not: 'PLATFORM_ADMIN' } } }),
+      prisma.user.count({ where: { isActive: true, isApproved: true, role: { not: 'PLATFORM_ADMIN' } } }),
       prisma.supportTicket.count(),
       prisma.supportTicket.count({ where: { status: 'OPEN' } }),
+      prisma.firm.count({ where: { createdAt: { gte: thirtyDaysAgo } } }),
     ]);
 
     res.json({
       totalFirms,
+      activeFirms,
+      suspendedFirms,
       totalUsers,
+      activeUsers,
       totalTickets,
       openTickets,
+      newFirmsThisMonth,
     });
   } catch (error) {
     console.error('Get platform stats error:', error);
@@ -300,5 +311,51 @@ export const updateSupportTicket = async (req: AuthRequest, res: Response) => {
   } catch (error) {
     console.error('Update support ticket error:', error);
     res.status(500).json({ error: 'Failed to update support ticket' });
+  }
+};
+
+// ── Suspend a firm (disable all access) ───────────────────────────────────
+export const suspendFirm = async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user || req.user.role !== 'PLATFORM_ADMIN') {
+      return res.status(403).json({ error: 'Access denied. Platform Admin only.' });
+    }
+
+    const { firmId } = req.params;
+
+    const firm = await prisma.firm.findUnique({ where: { id: firmId } });
+    if (!firm) return res.status(404).json({ error: 'Firm not found' });
+    if (!firm.isActive) return res.status(400).json({ error: 'Firm is already suspended' });
+
+    await prisma.firm.update({ where: { id: firmId }, data: { isActive: false } });
+
+    console.log(`[PLATFORM-ADMIN] Firm suspended: ${firm.name} (${firmId}) by ${req.user.userId}`);
+    res.json({ message: `${firm.name} has been suspended` });
+  } catch (error) {
+    console.error('Suspend firm error:', error);
+    res.status(500).json({ error: 'Failed to suspend firm' });
+  }
+};
+
+// ── Unsuspend / reactivate a firm ─────────────────────────────────────────
+export const unsuspendFirm = async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user || req.user.role !== 'PLATFORM_ADMIN') {
+      return res.status(403).json({ error: 'Access denied. Platform Admin only.' });
+    }
+
+    const { firmId } = req.params;
+
+    const firm = await prisma.firm.findUnique({ where: { id: firmId } });
+    if (!firm) return res.status(404).json({ error: 'Firm not found' });
+    if (firm.isActive) return res.status(400).json({ error: 'Firm is already active' });
+
+    await prisma.firm.update({ where: { id: firmId }, data: { isActive: true } });
+
+    console.log(`[PLATFORM-ADMIN] Firm unsuspended: ${firm.name} (${firmId}) by ${req.user.userId}`);
+    res.json({ message: `${firm.name} has been reactivated` });
+  } catch (error) {
+    console.error('Unsuspend firm error:', error);
+    res.status(500).json({ error: 'Failed to reactivate firm' });
   }
 };

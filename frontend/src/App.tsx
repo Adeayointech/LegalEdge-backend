@@ -19,6 +19,8 @@ import { UserManagement } from './components/UserManagement';
 import { Profile } from './components/Profile';
 import { PlatformAdmin } from './pages/PlatformAdmin';
 import Notifications from './pages/Notifications';
+import { ForgotPassword } from './pages/ForgotPassword';
+import { ResetPassword } from './pages/ResetPassword';
 
 function App() {
   return (
@@ -27,6 +29,8 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginForm />} />
         <Route path="/register" element={<RegisterForm />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route
           path="/dashboard"
           element={

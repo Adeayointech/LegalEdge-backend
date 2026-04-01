@@ -62,6 +62,10 @@ model User {
   lastLoginAt       DateTime?
   lastLoginIp       String?
   
+  // Password reset
+  passwordResetToken  String?
+  passwordResetExpiry DateTime?
+  
   @@index([email])
   @@index([firmId])
   @@index([branchId])
