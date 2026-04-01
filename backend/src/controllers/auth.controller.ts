@@ -250,6 +250,15 @@ export const login = async (req: Request, res: Response) => {
       console.log(`[LOGIN FAILED] Account deactivated: ${email}`);
       return res.status(403).json({ error: 'Your account has been deactivated. Please contact your firm administrator.' });
     }
+
+    // Check if the firm is suspended (skip for PLATFORM_ADMIN — they have no firm)
+    if (user.firmId && user.role !== 'PLATFORM_ADMIN') {
+      const firm = await prisma.firm.findUnique({ where: { id: user.firmId }, select: { isActive: true } });
+      if (firm && !firm.isActive) {
+        console.log(`[LOGIN FAILED] Firm suspended for user: ${email}`);
+        return res.status(403).json({ error: 'Access to this platform has been suspended for your organisation. Please contact Lawravel support.' });
+      }
+    }
     
     // Verify password
     const isPasswordValid = await comparePassword(password, user.password);
