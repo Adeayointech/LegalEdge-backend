@@ -338,8 +338,13 @@ export function PlatformAdmin() {
 
       {/* Tickets List */}
       <div className="bg-white rounded-lg shadow">
-        <div className="p-6 border-b border-gray-200">
+        <div className="p-6 border-b border-gray-200 flex items-center gap-3">
           <h2 className="text-lg font-semibold text-gray-900">Support Tickets</h2>
+          {(stats?.openTickets ?? 0) > 0 && (
+            <span className="inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 rounded-full text-xs font-bold bg-red-500 text-white">
+              {(stats?.openTickets ?? 0) > 99 ? '99+' : stats?.openTickets}
+            </span>
+          )}
         </div>
         <div className="p-6">
           {isLoading ? (

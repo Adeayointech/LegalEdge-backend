@@ -152,6 +152,12 @@ export const hearingAPI = {
   delete: (id: string) => api.delete(`/hearings/${id}`),
 };
 
+// Calendar API
+export const calendarAPI = {
+  getEvents: (params: { year?: number; month?: number; start?: string; end?: string }) =>
+    api.get('/calendar/events', { params }),
+};
+
 // Audit Log API
 export const auditLogAPI = {
   getAll: (params?: {

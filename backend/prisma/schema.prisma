@@ -65,6 +65,10 @@ model User {
   // Password reset
   passwordResetToken  String?
   passwordResetExpiry DateTime?
+
+  // Email verification
+  emailVerifyToken    String?
+  emailVerifyExpiry   DateTime?
   
   @@index([email])
   @@index([firmId])

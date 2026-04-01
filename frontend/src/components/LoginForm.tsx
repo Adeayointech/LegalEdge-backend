@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { authAPI } from '../lib/api';
 import { useAuthStore } from '../store/authStore';
 
@@ -8,6 +8,7 @@ export function LoginForm() {
   const [password, setPassword] = useState('');
   const [twoFactorToken, setTwoFactorToken] = useState('');
   const [requiresTwoFactor, setRequiresTwoFactor] = useState(false);
+  const [requiresEmailVerification, setRequiresEmailVerification] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   
@@ -35,6 +36,9 @@ export function LoginForm() {
       setAuth(response.data.user, response.data.token);
       navigate('/dashboard');
     } catch (err: any) {
+      if (err.response?.data?.requiresEmailVerification) {
+        setRequiresEmailVerification(true);
+      }
       setError(err.response?.data?.error || 'Login failed');
     } finally {
       setLoading(false);
@@ -69,6 +73,13 @@ export function LoginForm() {
         {error && (
           <div className="mb-6 p-4 bg-red-500/10 backdrop-blur-sm border border-red-500/50 text-red-300 rounded-lg">
             {error}
+            {requiresEmailVerification && (
+              <div className="mt-2">
+                <Link to="/verify-email" className="underline text-amber-400 text-sm">
+                  Resend verification email →
+                </Link>
+              </div>
+            )}
           </div>
         )}
 

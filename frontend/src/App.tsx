@@ -1,7 +1,8 @@
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from './store/authStore';
-import { firmAPI } from './lib/api';
+import { firmAPI, api } from './lib/api';
 import { useEffect, useState, useRef } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { createPortal } from 'react-dom';
 import { LoginForm } from './components/LoginForm';
 import { RegisterForm } from './components/RegisterForm';
@@ -21,6 +22,8 @@ import { PlatformAdmin } from './pages/PlatformAdmin';
 import Notifications from './pages/Notifications';
 import { ForgotPassword } from './pages/ForgotPassword';
 import { ResetPassword } from './pages/ResetPassword';
+import { VerifyEmail } from './pages/VerifyEmail';
+import { CalendarView } from './components/CalendarView';
 
 function App() {
   return (
@@ -31,6 +34,7 @@ function App() {
         <Route path="/register" element={<RegisterForm />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
         <Route
           path="/dashboard"
           element={
@@ -105,6 +109,16 @@ function App() {
             <ProtectedRoute>
               <Layout>
                 <AdvancedSearch />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/calendar"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <CalendarView />
               </Layout>
             </ProtectedRoute>
           }
@@ -193,6 +207,26 @@ function PlatformAdminRoute({ children }: { children: React.ReactNode }) {
   }
   
   return <>{children}</>;
+}
+
+// Open ticket badge for platform admin nav
+function OpenTicketBadge() {
+  const { data } = useQuery({
+    queryKey: ['platform-stats-badge'],
+    queryFn: async () => {
+      const res = await api.get('/platform-admin/stats');
+      return res.data;
+    },
+    refetchInterval: 60_000, // refresh every minute
+    staleTime: 30_000,
+  });
+  const count: number = data?.openTickets ?? 0;
+  if (count === 0) return null;
+  return (
+    <span className="ml-1.5 inline-flex items-center justify-center min-w-[18px] h-4 px-1 rounded-full text-[10px] font-bold bg-red-500 text-white">
+      {count > 99 ? '99+' : count}
+    </span>
+  );
 }
 
 // Home page
@@ -569,11 +603,14 @@ function Layout({ children }: { children: React.ReactNode }) {
               </div>
               <div className="hidden md:flex gap-1 ml-4">
                 {user?.role === 'PLATFORM_ADMIN' ? (
-                  <a href="/platform-admin" className={getLinkClass('/platform-admin')}>Platform Admin</a>
+                  <a href="/platform-admin" className={`${getLinkClass('/platform-admin')} flex items-center`}>
+                    Platform Admin<OpenTicketBadge />
+                  </a>
                 ) : (
                   <>
                     <a href="/dashboard" className={getLinkClass('/dashboard')}>Dashboard</a>
                     <a href="/cases" className={getLinkClass('/cases')}>Cases</a>
+                    <a href="/calendar" className={getLinkClass('/calendar')}>Calendar</a>
                     <a href="/branches" className={getLinkClass('/branches')}>Branches</a>
                     <a href="/search" className={getLinkClass('/search')}>Search</a>
                     <a href="/analytics" className={getLinkClass('/analytics')}>Analytics</a>
@@ -700,13 +737,13 @@ function Layout({ children }: { children: React.ReactNode }) {
                 <a
                   href="/platform-admin"
                   onClick={() => setShowMobileMenu(false)}
-                  className={`block px-4 py-3 rounded-lg transition-colors ${
+                  className={`flex items-center px-4 py-3 rounded-lg transition-colors ${
                     isActive('/platform-admin')
                       ? 'bg-amber-500/20 text-amber-400'
                       : 'text-slate-300 hover:bg-slate-700/50 hover:text-white'
                   }`}
                 >
-                  Platform Admin
+                  Platform Admin<OpenTicketBadge />
                 </a>
               ) : (
                 <>
@@ -731,6 +768,17 @@ function Layout({ children }: { children: React.ReactNode }) {
                     }`}
                   >
                     Cases
+                  </a>
+                  <a
+                    href="/calendar"
+                    onClick={() => setShowMobileMenu(false)}
+                    className={`block px-4 py-3 rounded-lg transition-colors ${
+                      isActive('/calendar')
+                        ? 'bg-amber-500/20 text-amber-400'
+                        : 'text-slate-300 hover:bg-slate-700/50 hover:text-white'
+                    }`}
+                  >
+                    Calendar
                   </a>
                   <a
                     href="/branches"

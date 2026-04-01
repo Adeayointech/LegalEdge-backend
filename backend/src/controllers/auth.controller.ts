@@ -96,7 +96,12 @@ export const register = async (req: Request, res: Response) => {
     // Determine approval status
     // SUPER_ADMIN (firm creator) is auto-approved, others need admin approval
     const isApproved = firmName ? true : false;
-    
+
+    // Generate email verification token
+    const crypto = await import('crypto');
+    const emailVerifyToken = crypto.randomBytes(32).toString('hex');
+    const emailVerifyExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
     // Create user
     const user = await prisma.user.create({
       data: {
@@ -108,6 +113,8 @@ export const register = async (req: Request, res: Response) => {
         role: userRole,
         firmId: finalFirmId,
         isApproved,
+        emailVerifyToken,
+        emailVerifyExpiry,
       },
       select: {
         id: true,
@@ -149,40 +156,71 @@ export const register = async (req: Request, res: Response) => {
     }
     
     // Send welcome email to the user
-    await sendEmail({
-      to: user.email,
-      subject: 'Welcome to Lawravel Platform',
-      html: `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <style>
-            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-            .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 8px 8px 0 0; }
-            .content { background: #f9fafb; padding: 30px; border-radius: 0 0 8px 8px; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="header">
-              <h1 style="margin: 0;">Welcome to Lawravel!</h1>
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const verifyLink = `${frontendUrl}/verify-email?token=${emailVerifyToken}`;
+    if (createdFirmCode) {
+      // New firm founder — send full onboarding email with invite code + setup steps
+      await sendEmail({
+        to: user.email,
+        subject: '🎉 Welcome to Lawravel — Your Firm is Ready',
+        html: `
+          <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#fff;border-radius:10px;overflow:hidden;border:1px solid #e5e7eb;">
+            <div style="background:linear-gradient(135deg,#1e3a5f,#2563eb);padding:36px 32px;text-align:center;">
+              <h1 style="color:#fff;margin:0;font-size:26px;letter-spacing:-0.5px;">Welcome to Lawravel</h1>
+              <p style="color:#93c5fd;margin:8px 0 0;">Your legal practice management platform is ready</p>
             </div>
-            <div class="content">
-              <p>Hello ${user.firstName},</p>
-              <p>Welcome to Lawravel - Your complete legal practice management solution.</p>
-              ${isApproved ? 
-                '<p>Your account is now active and you can start using the platform right away.</p>' : 
-                '<p>Your account has been created successfully. An administrator will review and approve your account shortly.</p>'
-              }
-              <p>If you have any questions, please contact our support team.</p>
-              <p>Best regards,<br>The Lawravel Team</p>
+            <div style="padding:32px;">
+              <p style="margin-top:0;">Hi <strong>${user.firstName}</strong>,</p>
+              <p>Congratulations — <strong>${firmName}</strong> is now set up on Lawravel. Here's everything you need to get started:</p>
+
+              <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:20px;margin:24px 0;">
+                <p style="margin:0 0 6px;font-size:13px;color:#0369a1;font-weight:bold;text-transform:uppercase;letter-spacing:.05em;">Your Firm Invite Code</p>
+                <p style="font-size:28px;font-weight:bold;color:#1e3a5f;margin:0;letter-spacing:4px;">${createdFirmCode}</p>
+                <p style="font-size:12px;color:#64748b;margin:8px 0 0;">Share this code with your colleagues so they can join your firm when they register.</p>
+              </div>
+
+              <h3 style="color:#1e3a5f;margin-bottom:12px;">Quick Setup Guide</h3>
+              <ol style="padding-left:20px;color:#374151;line-height:2;">
+                <li>Log in at <a href="${frontendUrl}/login" style="color:#2563eb;">${frontendUrl}/login</a></li>
+                <li>Go to <strong>Branches</strong> and create your office locations</li>
+                <li>Share your invite code with team members</li>
+                <li>Approve their registrations under <strong>User Management</strong></li>
+                <li>Add your first client and open a case</li>
+              </ol>
+
+              <div style="text-align:center;margin:32px 0;">
+                <a href="${verifyLink}" style="background:#2563eb;color:#fff;padding:14px 32px;border-radius:6px;text-decoration:none;font-weight:bold;display:inline-block;">Verify Email & Go to Dashboard</a>
+              </div>
+
+              <p style="color:#6b7280;font-size:13px;">Need help? Reply to this email or open a support ticket from within the platform.</p>
+            </div>
+            <div style="background:#f9fafb;padding:16px 32px;text-align:center;border-top:1px solid #e5e7eb;">
+              <p style="color:#9ca3af;font-size:12px;margin:0;">© ${new Date().getFullYear()} Lawravel. All rights reserved.</p>
             </div>
           </div>
-        </body>
-        </html>
-      `,
-    }).catch(err => console.error('Failed to send welcome email:', err));
+        `,
+        text: `Welcome to Lawravel!\n\nHi ${user.firstName},\n\nYour firm "${firmName}" is now set up.\n\nYour invite code: ${createdFirmCode}\n\nShare this with your colleagues so they can join your firm.\n\nVerify your email: ${verifyLink}`,
+      }).catch(err => console.error('Failed to send onboarding email:', err));
+    } else {
+      // Joining existing firm — simple welcome email
+      await sendEmail({
+        to: user.email,
+        subject: 'Welcome to Lawravel — Verify your email',
+        html: `
+          <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;">
+            <h2 style="color:#1e3a5f;">Welcome, ${user.firstName}!</h2>
+            <p>Your registration is ${isApproved ? 'confirmed' : 'submitted and pending approval by your firm administrator'}.</p>
+            <p>Please verify your email address to activate your account:</p>
+            <p style="text-align:center;margin:24px 0;">
+              <a href="${verifyLink}" style="background:#2563eb;color:#fff;padding:12px 28px;border-radius:6px;text-decoration:none;font-weight:bold;">Verify Email Address</a>
+            </p>
+            <p style="color:#9ca3af;font-size:12px;">This link expires in 24 hours.</p>
+            <p style="color:#6b7280;font-size:13px;">© ${new Date().getFullYear()} Lawravel</p>
+          </div>
+        `,
+        text: `Welcome to Lawravel, ${user.firstName}! Verify your email: ${verifyLink}`,
+      }).catch(err => console.error('Failed to send welcome email:', err));
+    }
 
     // If user is approved (SUPER_ADMIN), generate token and log them in
     // Otherwise, return success message without token (requires approval)
@@ -249,6 +287,14 @@ export const login = async (req: Request, res: Response) => {
     if (!user.isActive) {
       console.log(`[LOGIN FAILED] Account deactivated: ${email}`);
       return res.status(403).json({ error: 'Your account has been deactivated. Please contact your firm administrator.' });
+    }
+
+    // Check email verification (skip for PLATFORM_ADMIN)
+    if (user.role !== 'PLATFORM_ADMIN' && !user.emailVerified) {
+      return res.status(403).json({
+        error: 'Please verify your email address before logging in. Check your inbox for the verification link.',
+        requiresEmailVerification: true,
+      });
     }
 
     // Check if the firm is suspended (skip for PLATFORM_ADMIN — they have no firm)
@@ -588,5 +634,88 @@ export const resetPassword = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Reset password error:', error);
     res.status(500).json({ error: 'Failed to reset password' });
+  }
+};
+
+// ── Verify Email ───────────────────────────────────────────────────────────
+export const verifyEmail = async (req: Request, res: Response) => {
+  try {
+    const { token } = req.query as { token: string };
+    if (!token) {
+      return res.status(400).json({ error: 'Verification token is required' });
+    }
+
+    const user = await prisma.user.findFirst({
+      where: {
+        emailVerifyToken: token,
+        emailVerifyExpiry: { gt: new Date() },
+      },
+    });
+
+    if (!user) {
+      return res.status(400).json({ error: 'Invalid or expired verification link. Please request a new one.' });
+    }
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        emailVerified: true,
+        emailVerifyToken: null,
+        emailVerifyExpiry: null,
+      },
+    });
+
+    res.json({ message: 'Email verified successfully. You can now log in.' });
+  } catch (error) {
+    console.error('Verify email error:', error);
+    res.status(500).json({ error: 'Verification failed' });
+  }
+};
+
+// ── Resend Verification Email ──────────────────────────────────────────────
+export const resendVerification = async (req: Request, res: Response) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: 'Email is required' });
+
+    const user = await prisma.user.findUnique({ where: { email } });
+
+    // Always return success to prevent enumeration
+    if (!user || user.emailVerified) {
+      return res.json({ message: 'If that email exists and is unverified, a new link has been sent.' });
+    }
+
+    const crypto = await import('crypto');
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { emailVerifyToken: token, emailVerifyExpiry: expiry },
+    });
+
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const verifyLink = `${frontendUrl}/verify-email?token=${token}`;
+
+    await sendEmail({
+      to: user.email,
+      subject: 'Verify your Lawravel email address',
+      html: `
+        <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;">
+          <h2 style="color:#1e3a5f;">Verify your email</h2>
+          <p>Hi ${user.firstName}, click below to verify your email address. This link expires in 24 hours.</p>
+          <p style="text-align:center;margin:24px 0;">
+            <a href="${verifyLink}" style="background:#2563eb;color:#fff;padding:12px 28px;border-radius:6px;text-decoration:none;font-weight:bold;">Verify Email Address</a>
+          </p>
+          <p style="color:#9ca3af;font-size:12px;">If you didn't create a Lawravel account, you can ignore this email.</p>
+        </div>
+      `,
+      text: `Verify your Lawravel email: ${verifyLink}`,
+    });
+
+    res.json({ message: 'If that email exists and is unverified, a new link has been sent.' });
+  } catch (error) {
+    console.error('Resend verification error:', error);
+    res.status(500).json({ error: 'Failed to resend verification' });
   }
 };

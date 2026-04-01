@@ -42,6 +42,14 @@ router.post(
   authController.resetPassword
 );
 
+// Email verification (public)
+router.get('/verify-email', authController.verifyEmail);
+router.post(
+  '/resend-verification',
+  [body('email').isEmail().normalizeEmail()],
+  authController.resendVerification
+);
+
 // Protected routes
 router.get('/profile', authenticate, authController.getProfile);
 
