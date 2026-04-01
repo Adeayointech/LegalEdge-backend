@@ -491,7 +491,15 @@ export const assignLawyer = async (req: AuthRequest, res: Response) => {
 
     // Send email notification to the assigned lawyer
     const lawyerFullName = `${assignment.lawyer.firstName} ${assignment.lawyer.lastName}`;
-    const assignedBy = `${req.user.firstName} ${req.user.lastName}`;
+
+    // Fetch assigning user's name from DB (req.user may not carry firstName/lastName)
+    const assigningUser = await prisma.user.findUnique({
+      where: { id: req.user.userId },
+      select: { firstName: true, lastName: true },
+    });
+    const assignedBy = assigningUser
+      ? `${assigningUser.firstName} ${assigningUser.lastName}`
+      : 'A firm administrator';
     
     await sendCaseAssignmentEmail(
       assignment.lawyer.email,
