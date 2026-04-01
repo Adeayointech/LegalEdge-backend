@@ -611,3 +611,59 @@ export const getCaseStats = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ error: 'Failed to fetch case statistics' });
   }
 };
+
+export const exportCasesCSV = async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user) return res.status(401).json({ error: 'Authentication required' });
+
+    const { status, caseType } = req.query;
+
+    const where: any = { firmId: req.user.firmId };
+    if (status) where.status = status;
+    if (caseType) where.caseType = caseType;
+
+    const cases = await prisma.case.findMany({
+      where,
+      include: {
+        client: { select: { firstName: true, lastName: true, companyName: true, clientType: true } },
+        assignedLawyers: { include: { lawyer: { select: { firstName: true, lastName: true } } } },
+        branch: { select: { name: true } },
+        _count: { select: { documents: true, deadlines: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    const escape = (v: string) => `"${(v || '').replace(/"/g, '""')}"`;
+
+    const header = 'Suit Number,Title,Client,Case Type,Status,Court,Branch,Assigned Lawyers,Filing Date,Documents,Deadlines,Created\n';
+    const rows = cases.map(c => {
+      const client = c.client.clientType === 'INDIVIDUAL'
+        ? `${c.client.firstName || ''} ${c.client.lastName || ''}`.trim()
+        : (c.client.companyName || '');
+      const lawyers = c.assignedLawyers
+        .map(a => `${a.lawyer.firstName} ${a.lawyer.lastName}`)
+        .join('; ');
+      return [
+        c.suitNumber || '',
+        escape(c.title),
+        escape(client),
+        c.caseType,
+        c.status,
+        escape(c.courtName || ''),
+        escape(c.branch?.name || ''),
+        escape(lawyers),
+        c.filingDate ? new Date(c.filingDate).toLocaleDateString('en-GB') : '',
+        c._count.documents,
+        c._count.deadlines,
+        new Date(c.createdAt).toLocaleDateString('en-GB'),
+      ].join(',');
+    }).join('\n');
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename="cases-${new Date().toISOString().split('T')[0]}.csv"`);
+    res.send(header + rows);
+  } catch (error) {
+    console.error('Export cases CSV error:', error);
+    res.status(500).json({ error: 'Failed to export cases' });
+  }
+};

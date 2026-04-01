@@ -7,6 +7,7 @@ import {
   markDeadlineComplete,
   deleteDeadline,
   getDeadlineStats,
+  exportDeadlinesCSV,
 } from '../controllers/deadline.controller';
 import { authenticate, authorize } from '../middleware/auth';
 import { UserRole } from '@prisma/client';
@@ -15,6 +16,9 @@ const router = express.Router();
 
 // Get deadline statistics
 router.get('/stats', authenticate, getDeadlineStats);
+
+// Export deadlines as CSV
+router.get('/export/csv', authenticate, exportDeadlinesCSV);
 
 // Create deadline
 router.post(

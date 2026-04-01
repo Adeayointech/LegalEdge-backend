@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { deadlineAPI } from '../lib/api';
-import { Calendar, Clock, CheckCircle, XCircle, AlertCircle, Plus, Trash2, Bell, Edit2 } from 'lucide-react';
+import { Calendar, Clock, CheckCircle, XCircle, AlertCircle, Plus, Trash2, Bell, Edit2, Download } from 'lucide-react';
 import { CreateDeadline } from './CreateDeadline';
 import { ReminderSettings } from './ReminderSettings';
 
@@ -76,6 +76,26 @@ export function DeadlineList({ caseId }: DeadlineListProps) {
     }
   };
 
+  const [isExporting, setIsExporting] = useState(false);
+  const handleExportCSV = async () => {
+    setIsExporting(true);
+    try {
+      const response = await deadlineAPI.exportCSV({ caseId, status: filter.status || undefined });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `deadlines-${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Export failed:', err);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   const deadlines = data?.data?.deadlines || [];
 
   const formatDate = (date: string) => {
@@ -113,13 +133,23 @@ export function DeadlineList({ caseId }: DeadlineListProps) {
       {/* Header */}
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-semibold text-gray-900">Deadlines</h3>
-        <button
-          onClick={() => setShowCreate(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-900 text-white rounded-md hover:bg-blue-800"
-        >
-          <Plus className="w-4 h-4" />
-          Add Deadline
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleExportCSV}
+            disabled={isExporting}
+            className="flex items-center gap-2 px-3 py-2 bg-white border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 text-sm disabled:opacity-50"
+          >
+            <Download className="w-4 h-4" />
+            {isExporting ? 'Exporting...' : 'Export CSV'}
+          </button>
+          <button
+            onClick={() => setShowCreate(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-900 text-white rounded-md hover:bg-blue-800"
+          >
+            <Plus className="w-4 h-4" />
+            Add Deadline
+          </button>
+        </div>
       </div>
 
       {/* Filter */}

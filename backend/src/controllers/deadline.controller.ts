@@ -403,3 +403,49 @@ export const getDeadlineStats = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ error: 'Failed to fetch deadline statistics' });
   }
 };
+
+export const exportDeadlinesCSV = async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user) return res.status(401).json({ error: 'Authentication required' });
+
+    const { caseId, status } = req.query;
+
+    const where: any = { case: { firmId: req.user.firmId! } };
+    if (caseId) where.caseId = caseId as string;
+    if (status) where.status = status;
+
+    const deadlines = await prisma.deadline.findMany({
+      where,
+      include: {
+        case: { select: { title: true, suitNumber: true } },
+      },
+      orderBy: { dueDate: 'asc' },
+    });
+
+    const escape = (v: string) => `"${(v || '').replace(/"/g, '""')}"`;
+
+    const header = 'Title,Case,Suit Number,Type,Due Date,Status,Days Until Due,Reminder Days\n';
+    const rows = deadlines.map(d => {
+      const daysUntil = Math.ceil(
+        (new Date(d.dueDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
+      );
+      return [
+        escape(d.title),
+        escape(d.case.title),
+        d.case.suitNumber || '',
+        d.deadlineType,
+        new Date(d.dueDate).toLocaleDateString('en-GB'),
+        d.status,
+        daysUntil,
+        d.reminderDays.join('; '),
+      ].join(',');
+    }).join('\n');
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename="deadlines-${new Date().toISOString().split('T')[0]}.csv"`);
+    res.send(header + rows);
+  } catch (error) {
+    console.error('Export deadlines CSV error:', error);
+    res.status(500).json({ error: 'Failed to export deadlines' });
+  }
+};

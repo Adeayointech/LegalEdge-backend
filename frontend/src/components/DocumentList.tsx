@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { documentAPI } from '../lib/api';
-import { Download, FileText, Trash2, Upload, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { Download, FileText, Trash2, Clock, CheckCircle, XCircle, Pencil, X } from 'lucide-react';
 
 interface DocumentListProps {
   caseId: string;
@@ -30,6 +30,8 @@ export function DocumentList({ caseId }: DocumentListProps) {
     status: '',
     search: '',
   });
+  const [statusModal, setStatusModal] = useState<{ docId: string; title: string; currentStatus: string } | null>(null);
+  const [statusForm, setStatusForm] = useState({ status: '', filedDate: '', filedBy: '' });
 
   const { data, isLoading } = useQuery({
     queryKey: ['documents', caseId, filter],
@@ -51,6 +53,39 @@ export function DocumentList({ caseId }: DocumentListProps) {
       alert(`Error: ${errorMsg}`);
     },
   });
+
+  const updateStatusMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) => documentAPI.updateStatus(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['documents'] });
+      queryClient.invalidateQueries({ queryKey: ['filing-stats', caseId] });
+      setStatusModal(null);
+    },
+    onError: (error: any) => {
+      alert(error.response?.data?.error || 'Failed to update status');
+    },
+  });
+
+  const openStatusModal = (doc: any) => {
+    setStatusForm({
+      status: doc.status,
+      filedDate: doc.filedDate ? new Date(doc.filedDate).toISOString().split('T')[0] : '',
+      filedBy: doc.filedBy || '',
+    });
+    setStatusModal({ docId: doc.id, title: doc.title, currentStatus: doc.status });
+  };
+
+  const handleStatusSave = () => {
+    if (!statusModal) return;
+    updateStatusMutation.mutate({
+      id: statusModal.docId,
+      data: {
+        status: statusForm.status,
+        filedDate: statusForm.filedDate || undefined,
+        filedBy: statusForm.filedBy || undefined,
+      },
+    });
+  };
 
   const handleDownload = async (id: string, fileName: string) => {
     try {
@@ -203,6 +238,13 @@ export function DocumentList({ caseId }: DocumentListProps) {
                       <Download className="w-5 h-5" />
                     </button>
                     <button
+                      onClick={() => openStatusModal(doc)}
+                      className="p-2 text-blue-400 hover:bg-slate-700/50 rounded-md transition"
+                      title="Change Status"
+                    >
+                      <Pencil className="w-5 h-5" />
+                    </button>
+                    <button
                       onClick={() => handleDelete(doc.id, doc.title)}
                       className="p-2 text-red-400 hover:bg-slate-700/50 rounded-md transition"
                       title="Delete"
@@ -214,6 +256,77 @@ export function DocumentList({ caseId }: DocumentListProps) {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Change Status Modal */}
+      {statusModal && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-800 rounded-xl border border-slate-600 w-full max-w-md shadow-2xl">
+            <div className="flex items-center justify-between p-5 border-b border-slate-700">
+              <h3 className="text-lg font-semibold text-white">Change Document Status</h3>
+              <button onClick={() => setStatusModal(null)} className="text-slate-400 hover:text-white">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-5 space-y-4">
+              <p className="text-sm text-slate-400 truncate">{statusModal.title}</p>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-1">Status</label>
+                <select
+                  value={statusForm.status}
+                  onChange={(e) => setStatusForm({ ...statusForm, status: e.target.value })}
+                  className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+                >
+                  <option value="DRAFT">Draft</option>
+                  <option value="READY_TO_FILE">Ready to File</option>
+                  <option value="FILED">Filed</option>
+                  <option value="SERVED">Served</option>
+                  <option value="REJECTED">Rejected</option>
+                </select>
+              </div>
+
+              {(statusForm.status === 'FILED' || statusForm.status === 'SERVED') && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-1">Filed Date</label>
+                    <input
+                      type="date"
+                      value={statusForm.filedDate}
+                      onChange={(e) => setStatusForm({ ...statusForm, filedDate: e.target.value })}
+                      className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-1">Filed By</label>
+                    <input
+                      type="text"
+                      value={statusForm.filedBy}
+                      onChange={(e) => setStatusForm({ ...statusForm, filedBy: e.target.value })}
+                      placeholder="Name of person who filed"
+                      className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-md text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                    />
+                  </div>
+                </>
+              )}
+            </div>
+            <div className="flex gap-3 p-5 border-t border-slate-700">
+              <button
+                onClick={() => setStatusModal(null)}
+                className="flex-1 px-4 py-2 bg-slate-700 text-slate-300 rounded-lg hover:bg-slate-600 transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleStatusSave}
+                disabled={updateStatusMutation.isPending}
+                className="flex-1 px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition disabled:opacity-50"
+              >
+                {updateStatusMutation.isPending ? 'Saving...' : 'Save'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { caseAPI } from '../lib/api';
 import { useAuthStore } from '../store/authStore';
-import { FileText, Plus, Search } from 'lucide-react';
+import { FileText, Plus, Search, Download } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useSelectedBranch } from './BranchSelector';
 
@@ -12,7 +12,27 @@ export function CaseList() {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [showMyOnly, setShowMyOnly] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const selectedBranchId = useSelectedBranch();
+
+  const handleExportCSV = async () => {
+    setIsExporting(true);
+    try {
+      const response = await caseAPI.exportCSV({ status: statusFilter || undefined });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `cases-${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Export failed:', err);
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   // Debounce search input
   useEffect(() => {
@@ -58,14 +78,24 @@ export function CaseList() {
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 heading-font">Cases</h2>
           <p className="text-sm sm:text-base text-gray-600 mt-1">Manage and track all your legal cases</p>
         </div>
-        {['SENIOR_PARTNER', 'PARTNER', 'ASSOCIATE'].includes(user?.role || '') && (
-          <Link
-            to="/cases/new"
-            className="flex items-center gap-2 px-6 py-3 bg-blue-900 text-white rounded-lg hover:bg-blue-800 transition-all shadow-sm hover:shadow font-medium"
-          >
-            <Plus size={20} />
-            New Case
-          </Link>
+        {['SENIOR_PARTNER', 'PARTNER', 'ASSOCIATE', 'SUPER_ADMIN'].includes(user?.role || '') && (
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleExportCSV}
+              disabled={isExporting}
+              className="flex items-center gap-2 px-4 py-3 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all shadow-sm font-medium disabled:opacity-50"
+            >
+              <Download size={18} />
+              {isExporting ? 'Exporting...' : 'Export CSV'}
+            </button>
+            <Link
+              to="/cases/new"
+              className="flex items-center gap-2 px-6 py-3 bg-blue-900 text-white rounded-lg hover:bg-blue-800 transition-all shadow-sm hover:shadow font-medium"
+            >
+              <Plus size={20} />
+              New Case
+            </Link>
+          </div>
         )}
       </div>
 

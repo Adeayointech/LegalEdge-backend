@@ -54,6 +54,8 @@ export const caseAPI = {
   assignLawyer: (id: string, data: any) => api.post(`/cases/${id}/assign-lawyer`, data),
   unassignLawyer: (id: string, lawyerId: string) => api.delete(`/cases/${id}/assign-lawyer/${lawyerId}`),
   getStats: () => api.get('/cases/stats'),
+  exportCSV: (params?: { status?: string; caseType?: string }) =>
+    api.get('/cases/export/csv', { params, responseType: 'blob' }),
 };
 
 // Client API
@@ -132,6 +134,9 @@ export const deadlineAPI = {
   markComplete: (id: string) => api.patch(`/deadlines/${id}/complete`),
   
   delete: (id: string) => api.delete(`/deadlines/${id}`),
+
+  exportCSV: (params?: { caseId?: string; status?: string }) =>
+    api.get('/deadlines/export/csv', { params, responseType: 'blob' }),
 };
 
 // Hearing API

@@ -12,6 +12,9 @@ router.use(authenticate);
 // Get case statistics
 router.get('/stats', caseController.getCaseStats);
 
+// Export cases as CSV
+router.get('/export/csv', caseController.exportCasesCSV);
+
 // CRUD operations
 router.post(
   '/',
