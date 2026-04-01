@@ -1,10 +1,11 @@
 import { Response } from 'express';
-import { CaseType, CaseStatus } from '@prisma/client';
+import { CaseType, CaseStatus, NotificationType } from '@prisma/client';
 import prisma from '../lib/prisma';
 import { AuthRequest } from '../middleware/auth';
 import { createAuditLog } from '../middleware/auditLog';
 import { sendCaseAssignmentEmail } from '../utils/email';
 import { sendCaseAssignmentSMS } from '../utils/sms';
+import { createNotification } from '../services/notification.service';
 
 export const createCase = async (req: AuthRequest, res: Response) => {
   try {
@@ -514,6 +515,17 @@ export const assignLawyer = async (req: AuthRequest, res: Response) => {
     } else {
       console.log(`SMS not sent: Lawyer ${lawyerFullName} has no phone number in database`);
     }
+
+    // In-app notification for assigned lawyer
+    createNotification({
+      userId: lawyerId,
+      type: NotificationType.CASE_ASSIGNED,
+      title: `You have been assigned to a case`,
+      message: `${assignedBy} assigned you to case "${caseData.title}"${caseData.suitNumber ? ` (${caseData.suitNumber})` : ''}${role ? ` as ${role}` : ''}.`,
+      entityType: 'Case',
+      entityId: caseData.id,
+      sendEmail: false, // Email already sent above
+    }).catch((err) => console.error('[NOTIFY] case assign:', err));
 
     res.json(assignment);
   } catch (error) {

@@ -13,16 +13,16 @@ const scheduleDeadlineReminders = () => {
     
     try {
       const now = new Date();
-      const threeDaysFromNow = new Date();
-      threeDaysFromNow.setDate(now.getDate() + 3);
+      const fourteenDaysFromNow = new Date();
+      fourteenDaysFromNow.setDate(now.getDate() + 14);
 
-      // Find pending deadlines in the next 3 days
+      // Find pending deadlines in the next 14 days (covers all reminderDays values)
       const upcomingDeadlines = await prisma.deadline.findMany({
         where: {
           status: 'PENDING',
           dueDate: {
             gte: now,
-            lte: threeDaysFromNow,
+            lte: fourteenDaysFromNow,
           },
         },
         include: {
@@ -162,6 +162,12 @@ const scheduleOverdueAlerts = () => {
           (now.getTime() - new Date(deadline.dueDate).getTime()) / (1000 * 60 * 60 * 24)
         );
 
+        // Mark status as MISSED in DB
+        await prisma.deadline.update({
+          where: { id: deadline.id },
+          data: { status: 'MISSED' },
+        });
+
         // Send overdue alert
         for (const assignment of deadline.case.assignedLawyers) {
           const lawyer = assignment.lawyer;
@@ -214,15 +220,15 @@ const scheduleHearingReminders = () => {
     
     try {
       const now = new Date();
-      const threeDaysFromNow = new Date();
-      threeDaysFromNow.setDate(now.getDate() + 3);
+      const fourteenDaysFromNow = new Date();
+      fourteenDaysFromNow.setDate(now.getDate() + 14);
 
-      // Find upcoming hearings in the next 3 days
+      // Find upcoming hearings in the next 14 days (covers all reminderDays values)
       const upcomingHearings = await prisma.hearing.findMany({
         where: {
           hearingDate: {
             gte: now,
-            lte: threeDaysFromNow,
+            lte: fourteenDaysFromNow,
           },
           outcome: null, // Only hearings that haven't occurred yet
         },
@@ -236,6 +242,7 @@ const scheduleHearingReminders = () => {
                 include: {
                   lawyer: {
                     select: {
+                      id: true,
                       email: true,
                       firstName: true,
                       lastName: true,
@@ -268,6 +275,18 @@ const scheduleHearingReminders = () => {
           for (const assignment of hearing.case.assignedLawyers) {
             const lawyer = assignment.lawyer;
             const lawyerName = `${lawyer.firstName} ${lawyer.lastName}`;
+
+            // In-app notification
+            const urgencyLabel = daysUntilHearing === 0 ? '🚨 TODAY' : daysUntilHearing === 1 ? '⚠️ TOMORROW' : `📅 ${daysUntilHearing} days`;
+            await createNotification({
+              userId: lawyer.id,
+              type: NotificationType.HEARING_REMINDER,
+              title: `${urgencyLabel}: ${hearing.title}`,
+              message: `Hearing "${hearing.title}" for case "${hearing.case.title}" is ${daysUntilHearing === 0 ? 'today' : `in ${daysUntilHearing} day${daysUntilHearing !== 1 ? 's' : ''}`}${hearing.courtRoom ? ` — ${hearing.courtRoom}` : ''}.`,
+              entityType: 'Hearing',
+              entityId: hearing.id,
+              sendEmail: false,
+            });
             
             // Send email reminder
             await sendHearingReminder(

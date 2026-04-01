@@ -61,14 +61,14 @@ export function CalendarView() {
     : [];
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-white heading-font">Calendar</h1>
           <p className="text-sm text-slate-400 mt-0.5">Upcoming hearings and deadlines</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 self-start sm:self-auto">
           <button
             onClick={handlePrev}
             className="p-2 rounded-lg border border-white/20 hover:bg-white/10 transition-colors"
@@ -76,7 +76,7 @@ export function CalendarView() {
           >
             <ChevronLeft className="w-4 h-4 text-slate-300" />
           </button>
-          <span className="text-base font-semibold text-white min-w-[160px] text-center">
+          <span className="text-base font-semibold text-white min-w-[120px] sm:min-w-[160px] text-center">
             {MONTHS[month - 1]} {year}
           </span>
           <button
@@ -96,7 +96,8 @@ export function CalendarView() {
           <div className="grid grid-cols-7 border-b border-gray-100">
             {DAYS.map((d) => (
               <div key={d} className="py-2 text-center text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                {d}
+                <span className="hidden sm:inline">{d}</span>
+                <span className="sm:hidden">{d[0]}</span>
               </div>
             ))}
           </div>
@@ -124,14 +125,14 @@ export function CalendarView() {
                   <button
                     key={day}
                     onClick={() => setSelectedDay(isSelected ? null : dayDate)}
-                    className={`h-24 border-b border-r border-gray-100 p-1.5 text-left align-top transition-colors ${
+                    className={`h-16 sm:h-24 border-b border-r border-gray-100 p-1 sm:p-1.5 text-left align-top transition-colors ${
                       isSelected
                         ? 'bg-blue-50 ring-2 ring-inset ring-blue-400'
                         : 'hover:bg-gray-50'
                     }`}
                   >
                     <span
-                      className={`inline-flex w-6 h-6 items-center justify-center rounded-full text-xs font-semibold mb-1 ${
+                      className={`inline-flex w-5 h-5 sm:w-6 sm:h-6 items-center justify-center rounded-full text-xs font-semibold mb-1 ${
                         isToday
                           ? 'bg-blue-600 text-white'
                           : 'text-gray-700'
@@ -140,7 +141,18 @@ export function CalendarView() {
                       {day}
                     </span>
 
-                    <div className="space-y-0.5 overflow-hidden">
+                    {/* Mobile: dot indicators only */}
+                    <div className="flex flex-wrap gap-0.5 sm:hidden">
+                      {hearings.slice(0, 2).map((e) => (
+                        <span key={e.id} className="w-1.5 h-1.5 rounded-full bg-blue-500" title={e.title} />
+                      ))}
+                      {deadlines.slice(0, 2).map((e) => (
+                        <span key={e.id} className="w-1.5 h-1.5 rounded-full bg-amber-500" title={e.title} />
+                      ))}
+                    </div>
+
+                    {/* Desktop: text chips */}
+                    <div className="hidden sm:block space-y-0.5 overflow-hidden">
                       {hearings.slice(0, 2).map((e) => (
                         <div
                           key={e.id}

@@ -1,8 +1,9 @@
 import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import prisma from '../lib/prisma';
-import { DocumentType, DocumentStatus } from '@prisma/client';
+import { DocumentType, DocumentStatus, NotificationType } from '@prisma/client';
 import { createAuditLog } from '../middleware/auditLog';
+import { createNotification } from '../services/notification.service';
 import fs from 'fs';
 
 export const uploadDocument = async (req: AuthRequest, res: Response) => {
@@ -98,6 +99,30 @@ export const uploadDocument = async (req: AuthRequest, res: Response) => {
       undefined,
       req
     );
+
+    // Notify assigned lawyers on the case (non-blocking)
+    prisma.case.findUnique({
+      where: { id: caseId },
+      select: { assignedLawyers: { select: { lawyer: { select: { id: true } } } } },
+    }).then((c) => {
+      if (!c) return;
+      const uploader = `${req.user!.firstName} ${req.user!.lastName}`;
+      return Promise.all(
+        c.assignedLawyers
+          .filter((a) => a.lawyer.id !== req.user!.userId)
+          .map((a) =>
+            createNotification({
+              userId: a.lawyer.id,
+              type: NotificationType.DOCUMENT_UPLOADED,
+              title: `New document uploaded`,
+              message: `${uploader} uploaded "${title}" to case ${document.case.title}.`,
+              entityType: 'Document',
+              entityId: document.id,
+              sendEmail: false,
+            })
+          )
+      );
+    }).catch((err) => console.error('[NOTIFY] document upload:', err));
 
     res.status(201).json(document);
   } catch (error) {

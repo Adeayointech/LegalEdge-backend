@@ -2,6 +2,8 @@ import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import prisma from '../lib/prisma';
 import { createAuditLog } from '../middleware/auditLog';
+import { createNotification } from '../services/notification.service';
+import { NotificationType } from '@prisma/client';
 
 export const createHearing = async (req: AuthRequest, res: Response) => {
   try {
@@ -63,6 +65,31 @@ export const createHearing = async (req: AuthRequest, res: Response) => {
       undefined,
       req
     );
+
+    // Notify assigned lawyers (non-blocking)
+    prisma.case.findUnique({
+      where: { id: caseId },
+      select: { assignedLawyers: { select: { lawyer: { select: { id: true } } } } },
+    }).then((c) => {
+      if (!c) return;
+      const hearingDate = new Date(hearing.hearingDate);
+      const dateStr = hearingDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+      return Promise.all(
+        c.assignedLawyers
+          .filter((a) => a.lawyer.id !== req.user!.userId)
+          .map((a) =>
+            createNotification({
+              userId: a.lawyer.id,
+              type: NotificationType.HEARING_REMINDER,
+              title: `New hearing scheduled`,
+              message: `"${title}" has been scheduled for ${dateStr} on case ${hearing.case.title}.`,
+              entityType: 'Hearing',
+              entityId: hearing.id,
+              sendEmail: false,
+            })
+          )
+      );
+    }).catch((err) => console.error('[NOTIFY] hearing create:', err));
 
     res.status(201).json(hearing);
   } catch (error) {

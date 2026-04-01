@@ -2,6 +2,8 @@ import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import prisma from '../lib/prisma';
 import { createAuditLog } from '../middleware/auditLog';
+import { createNotification } from '../services/notification.service';
+import { NotificationType } from '@prisma/client';
 
 export const createDeadline = async (req: AuthRequest, res: Response) => {
   try {
@@ -64,6 +66,30 @@ export const createDeadline = async (req: AuthRequest, res: Response) => {
       undefined,
       req
     );
+
+    // Notify assigned lawyers (non-blocking)
+    prisma.case.findUnique({
+      where: { id: caseId },
+      select: { assignedLawyers: { select: { lawyer: { select: { id: true } } } } },
+    }).then((c) => {
+      if (!c) return;
+      const dueStr = new Date(deadline.dueDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+      return Promise.all(
+        c.assignedLawyers
+          .filter((a) => a.lawyer.id !== req.user!.userId)
+          .map((a) =>
+            createNotification({
+              userId: a.lawyer.id,
+              type: NotificationType.DEADLINE_REMINDER,
+              title: `New deadline added`,
+              message: `"${title}" has been added to case ${deadline.case.title} — due ${dueStr}.`,
+              entityType: 'Deadline',
+              entityId: deadline.id,
+              sendEmail: false,
+            })
+          )
+      );
+    }).catch((err) => console.error('[NOTIFY] deadline create:', err));
 
     res.status(201).json(deadline);
   } catch (error) {
