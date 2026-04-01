@@ -13,7 +13,7 @@ export interface EmailOptions {
 const sendViaResend = async (options: EmailOptions): Promise<boolean> => {
   const resend = new Resend(process.env.RESEND_API_KEY!);
   const fromName = process.env.SMTP_FROM_NAME || 'Lawravel';
-  const fromEmail = process.env.RESEND_FROM_EMAIL || process.env.SUPPORT_EMAIL || 'onboarding@resend.dev';
+  const fromEmail = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
 
   const { error } = await resend.emails.send({
     from: `${fromName} <${fromEmail}>`,
