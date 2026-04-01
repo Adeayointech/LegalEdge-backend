@@ -74,6 +74,17 @@ export const register = async (req: Request, res: Response) => {
       });
       finalFirmId = newFirm.id;
       createdFirmCode = inviteCode;
+
+      // Auto-create the headquarters branch for the new firm
+      await prisma.branch.create({
+        data: {
+          firmId: newFirm.id,
+          name: 'Headquarters',
+          code: 'HQ',
+          isHeadquarters: true,
+          isActive: true,
+        },
+      });
     } 
     // Join existing firm with code
     else {
@@ -97,12 +108,7 @@ export const register = async (req: Request, res: Response) => {
     // SUPER_ADMIN (firm creator) is auto-approved, others need admin approval
     const isApproved = firmName ? true : false;
 
-    // Generate email verification token
-    const crypto = await import('crypto');
-    const emailVerifyToken = crypto.randomBytes(32).toString('hex');
-    const emailVerifyExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
-
-    // Create user
+    // Create user (email verification disabled until domain is verified)
     const user = await prisma.user.create({
       data: {
         email,
@@ -113,8 +119,7 @@ export const register = async (req: Request, res: Response) => {
         role: userRole,
         firmId: finalFirmId,
         isApproved,
-        emailVerifyToken,
-        emailVerifyExpiry,
+        emailVerified: true,
       },
       select: {
         id: true,
@@ -157,7 +162,6 @@ export const register = async (req: Request, res: Response) => {
     
     // Send welcome email to the user
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-    const verifyLink = `${frontendUrl}/verify-email?token=${emailVerifyToken}`;
     if (createdFirmCode) {
       // New firm founder — send full onboarding email with invite code + setup steps
       await sendEmail({
@@ -189,7 +193,7 @@ export const register = async (req: Request, res: Response) => {
               </ol>
 
               <div style="text-align:center;margin:32px 0;">
-                <a href="${verifyLink}" style="background:#2563eb;color:#fff;padding:14px 32px;border-radius:6px;text-decoration:none;font-weight:bold;display:inline-block;">Verify Email & Go to Dashboard</a>
+                <a href="${frontendUrl}/login" style="background:#2563eb;color:#fff;padding:14px 32px;border-radius:6px;text-decoration:none;font-weight:bold;display:inline-block;">Go to Dashboard</a>
               </div>
 
               <p style="color:#6b7280;font-size:13px;">Need help? Reply to this email or open a support ticket from within the platform.</p>
@@ -199,26 +203,22 @@ export const register = async (req: Request, res: Response) => {
             </div>
           </div>
         `,
-        text: `Welcome to Lawravel!\n\nHi ${user.firstName},\n\nYour firm "${firmName}" is now set up.\n\nYour invite code: ${createdFirmCode}\n\nShare this with your colleagues so they can join your firm.\n\nVerify your email: ${verifyLink}`,
+        text: `Welcome to Lawravel!\n\nHi ${user.firstName},\n\nYour firm "${firmName}" is now set up.\n\nYour invite code: ${createdFirmCode}\n\nShare this with your colleagues so they can join your firm.\n\nLogin at: ${frontendUrl}/login`,
       }).catch(err => console.error('Failed to send onboarding email:', err));
     } else {
       // Joining existing firm — simple welcome email
       await sendEmail({
         to: user.email,
-        subject: 'Welcome to Lawravel — Verify your email',
+        subject: 'Welcome to Lawravel',
         html: `
           <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;">
             <h2 style="color:#1e3a5f;">Welcome, ${user.firstName}!</h2>
             <p>Your registration is ${isApproved ? 'confirmed' : 'submitted and pending approval by your firm administrator'}.</p>
-            <p>Please verify your email address to activate your account:</p>
-            <p style="text-align:center;margin:24px 0;">
-              <a href="${verifyLink}" style="background:#2563eb;color:#fff;padding:12px 28px;border-radius:6px;text-decoration:none;font-weight:bold;">Verify Email Address</a>
-            </p>
-            <p style="color:#9ca3af;font-size:12px;">This link expires in 24 hours.</p>
+            ${isApproved ? `<p style="text-align:center;margin:24px 0;"><a href="${frontendUrl}/login" style="background:#2563eb;color:#fff;padding:12px 28px;border-radius:6px;text-decoration:none;font-weight:bold;">Go to Dashboard</a></p>` : ''}
             <p style="color:#6b7280;font-size:13px;">© ${new Date().getFullYear()} Lawravel</p>
           </div>
         `,
-        text: `Welcome to Lawravel, ${user.firstName}! Verify your email: ${verifyLink}`,
+        text: `Welcome to Lawravel, ${user.firstName}! ${isApproved ? `Login at: ${frontendUrl}/login` : 'Your account is pending approval by your firm administrator.'}`,
       }).catch(err => console.error('Failed to send welcome email:', err));
     }
 
@@ -289,13 +289,13 @@ export const login = async (req: Request, res: Response) => {
       return res.status(403).json({ error: 'Your account has been deactivated. Please contact your firm administrator.' });
     }
 
-    // Check email verification (skip for PLATFORM_ADMIN)
-    if (user.role !== 'PLATFORM_ADMIN' && !user.emailVerified) {
-      return res.status(403).json({
-        error: 'Please verify your email address before logging in. Check your inbox for the verification link.',
-        requiresEmailVerification: true,
-      });
-    }
+    // Email verification disabled until domain is verified
+    // if (user.role !== 'PLATFORM_ADMIN' && !user.emailVerified) {
+    //   return res.status(403).json({
+    //     error: 'Please verify your email address before logging in. Check your inbox for the verification link.',
+    //     requiresEmailVerification: true,
+    //   });
+    // }
 
     // Check if the firm is suspended (skip for PLATFORM_ADMIN — they have no firm)
     if (user.firmId && user.role !== 'PLATFORM_ADMIN') {
