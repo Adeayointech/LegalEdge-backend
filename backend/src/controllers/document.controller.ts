@@ -527,6 +527,14 @@ export const getFilingStats = async (req: AuthRequest, res: Response) => {
       },
     });
 
+    const STATUS_KEY: Record<string, string> = {
+      DRAFT: 'draft',
+      READY_TO_FILE: 'ready',
+      FILED: 'filed',
+      SERVED: 'served',
+      REJECTED: 'rejected',
+    };
+
     // Group by type and status
     const stats: any = {};
     documents.forEach((doc: any) => {
@@ -541,7 +549,8 @@ export const getFilingStats = async (req: AuthRequest, res: Response) => {
         };
       }
       stats[doc.documentType].total++;
-      stats[doc.documentType][doc.status.toLowerCase()]++;
+      const key = STATUS_KEY[doc.status] || doc.status.toLowerCase();
+      stats[doc.documentType][key]++;
     });
 
     res.json(stats);
