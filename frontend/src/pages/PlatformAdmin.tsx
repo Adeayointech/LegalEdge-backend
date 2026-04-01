@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
-import { Building2, Users, Filter, XCircle, Eye, Calendar, AlertCircle, ShieldOff, ShieldCheck } from 'lucide-react';
+import { Building2, Users, Ticket, Filter, XCircle, Eye, Calendar, AlertCircle, ShieldOff, ShieldCheck } from 'lucide-react';
 
 export function PlatformAdmin() {
   const queryClient = useQueryClient();
