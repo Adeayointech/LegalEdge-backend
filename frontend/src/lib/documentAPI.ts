@@ -19,7 +19,6 @@ export const documentAPI = {
   download: (id: string, version?: number) => 
     api.get(`/documents/${id}/download`, {
       params: version ? { version } : undefined,
-      responseType: 'blob',
     }),
   
   updateStatus: (id: string, data: {

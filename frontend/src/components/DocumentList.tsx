@@ -87,17 +87,16 @@ export function DocumentList({ caseId }: DocumentListProps) {
     });
   };
 
-  const handleDownload = async (id: string, fileName: string) => {
+  const handleDownload = async (id: string, _fileName: string) => {
     try {
       const response = await documentAPI.download(id);
-      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const { url, fileName } = response.data;
       const link = document.createElement('a');
       link.href = url;
       link.setAttribute('download', fileName);
       document.body.appendChild(link);
       link.click();
       link.remove();
-      window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Download failed:', error);
     }

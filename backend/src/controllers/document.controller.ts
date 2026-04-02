@@ -1,10 +1,10 @@
 import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import prisma from '../lib/prisma';
-import { DocumentType, DocumentStatus, NotificationType } from '@prisma/client';
+import { NotificationType } from '@prisma/client';
 import { createAuditLog } from '../middleware/auditLog';
 import { createNotification } from '../services/notification.service';
-import fs from 'fs';
+import { uploadToR2, getPresignedDownloadUrl, deleteFromR2, buildR2Key } from '../lib/r2';
 
 export const uploadDocument = async (req: AuthRequest, res: Response) => {
   try {
@@ -39,20 +39,22 @@ export const uploadDocument = async (req: AuthRequest, res: Response) => {
     });
 
     if (!caseRecord) {
-      // Delete uploaded file if case doesn't exist
-      fs.unlinkSync(req.file.path);
       return res.status(404).json({ error: 'Case not found' });
     }
 
-    // Create document record
+    // Upload file to Cloudflare R2
+    const r2Key = buildR2Key(req.user.firmId!, caseId, req.file.originalname);
+    await uploadToR2(req.file.buffer, r2Key, req.file.mimetype);
+
+    // Create document record — filePath stores the R2 object key
     const document = await prisma.document.create({
       data: {
         title,
         description,
         documentType,
         status: status || 'DRAFT',
-        filePath: req.file.path,
-        fileName: req.file.filename,
+        filePath: r2Key,
+        fileName: req.file.originalname,
         fileSize: req.file.size,
         mimeType: req.file.mimetype,
         caseId,
@@ -82,8 +84,8 @@ export const uploadDocument = async (req: AuthRequest, res: Response) => {
       data: {
         documentId: document.id,
         version: 1,
-        filePath: req.file.path,
-        fileName: req.file.filename,
+        filePath: r2Key,
+        fileName: req.file.originalname,
         fileSize: req.file.size,
         createdById: req.user.userId,
         changeDescription: 'Initial upload',
@@ -127,10 +129,6 @@ export const uploadDocument = async (req: AuthRequest, res: Response) => {
     res.status(201).json(document);
   } catch (error) {
     console.error('Upload document error:', error);
-    // Clean up file if database operation failed
-    if (req.file && fs.existsSync(req.file.path)) {
-      fs.unlinkSync(req.file.path);
-    }
     res.status(500).json({ error: 'Failed to upload document' });
   }
 };
@@ -297,20 +295,18 @@ export const downloadDocument = async (req: AuthRequest, res: Response) => {
       return res.status(404).json({ error: 'Document not found' });
     }
 
-    let filePath = document.filePath;
+    let r2Key = document.filePath;
     let fileName = document.fileName;
 
     // If specific version requested
     if (version && document.versions && document.versions.length > 0) {
-      filePath = document.versions[0].filePath;
+      r2Key = document.versions[0].filePath;
       fileName = document.versions[0].fileName;
     }
 
-    if (!fs.existsSync(filePath)) {
-      return res.status(404).json({ error: 'File not found on server' });
-    }
-
-    res.download(filePath, fileName);
+    // Generate a pre-signed URL valid for 1 hour
+    const url = await getPresignedDownloadUrl(r2Key, fileName);
+    res.json({ url, fileName });
   } catch (error) {
     console.error('Download document error:', error);
     res.status(500).json({ error: 'Failed to download document' });
@@ -402,18 +398,21 @@ export const uploadNewVersion = async (req: AuthRequest, res: Response) => {
     });
 
     if (!document) {
-      fs.unlinkSync(req.file.path);
       return res.status(404).json({ error: 'Document not found' });
     }
 
     const nextVersion = document.versions.length > 0 ? document.versions[0].version + 1 : 1;
 
+    // Upload new version to R2
+    const r2Key = buildR2Key(req.user.firmId!, document.caseId, req.file.originalname);
+    await uploadToR2(req.file.buffer, r2Key, req.file.mimetype);
+
     // Update document with new file
     const updated = await prisma.document.update({
       where: { id },
       data: {
-        filePath: req.file.path,
-        fileName: req.file.filename,
+        filePath: r2Key,
+        fileName: req.file.originalname,
         fileSize: req.file.size,
         mimeType: req.file.mimetype,
       },
@@ -424,8 +423,8 @@ export const uploadNewVersion = async (req: AuthRequest, res: Response) => {
       data: {
         documentId: id,
         version: nextVersion,
-        filePath: req.file.path,
-        fileName: req.file.filename,
+        filePath: r2Key,
+        fileName: req.file.originalname,
         fileSize: req.file.size,
         createdById: req.user.userId,
         changeDescription: changeDescription || `Version ${nextVersion}`,
@@ -445,9 +444,6 @@ export const uploadNewVersion = async (req: AuthRequest, res: Response) => {
     res.json({ document: updated, version });
   } catch (error) {
     console.error('Upload new version error:', error);
-    if (req.file && fs.existsSync(req.file.path)) {
-      fs.unlinkSync(req.file.path);
-    }
     res.status(500).json({ error: 'Failed to upload new version' });
   }
 };
@@ -476,17 +472,13 @@ export const deleteDocument = async (req: AuthRequest, res: Response) => {
       return res.status(404).json({ error: 'Document not found' });
     }
 
-    // Delete all version files
+    // Delete all version files from R2
+    const keysToDelete = new Set<string>();
+    keysToDelete.add(document.filePath);
     for (const version of document.versions) {
-      if (fs.existsSync(version.filePath)) {
-        fs.unlinkSync(version.filePath);
-      }
+      keysToDelete.add(version.filePath);
     }
-
-    // Delete current file if different
-    if (fs.existsSync(document.filePath)) {
-      fs.unlinkSync(document.filePath);
-    }
+    await Promise.allSettled([...keysToDelete].map((key) => deleteFromR2(key)));
 
     // Delete from database (cascade will delete versions)
     await prisma.document.delete({ where: { id } });

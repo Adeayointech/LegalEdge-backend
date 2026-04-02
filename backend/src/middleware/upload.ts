@@ -1,26 +1,8 @@
 import multer from 'multer';
-import path from 'path';
-import fs from 'fs';
 
-// Ensure uploads directory exists
-const uploadDir = path.join(__dirname, '../../uploads');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-// Configure storage
-const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => {
-    cb(null, uploadDir);
-  },
-  filename: (_req, file, cb) => {
-    // Generate unique filename: timestamp-randomstring-originalname
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    const ext = path.extname(file.originalname);
-    const name = path.basename(file.originalname, ext);
-    cb(null, `${name}-${uniqueSuffix}${ext}`);
-  },
-});
+// Use memory storage — files are held in RAM buffer and streamed to R2.
+// Nothing is written to disk.
+const storage = multer.memoryStorage();
 
 // File filter - accept common document types
 const fileFilter = (_req: any, file: Express.Multer.File, cb: any) => {
