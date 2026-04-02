@@ -55,7 +55,7 @@ export function RegisterForm() {
         password: formData.password,
         firstName: formData.firstName,
         lastName: formData.lastName,
-        phone: formData.phone || undefined,
+        phone: formData.phone,
         firmName: registrationType === 'create' ? formData.firmName : undefined,
         firmCode: registrationType === 'join' ? formData.firmCode : undefined,
       });
@@ -243,7 +243,7 @@ export function RegisterForm() {
 
               <div className="md:col-span-2">
                 <label className="block text-sm font-semibold text-slate-300 mb-2">
-                  Phone Number (Optional)
+                  Phone Number *
                 </label>
                 <input
                   type="tel"
@@ -251,6 +251,7 @@ export function RegisterForm() {
                   value={formData.phone}
                   onChange={handleChange}
                   placeholder="e.g., 08012345678 or +2348012345678"
+                  required
                   className="w-full px-4 py-3 bg-slate-800/50 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition"
                 />
                 <p className="text-xs text-slate-500 mt-2">

@@ -23,7 +23,7 @@ export const register = async (req: Request, res: Response) => {
     const { email, password, firstName, lastName, phone, firmName, firmCode } = req.body;
     
     // Validate required fields
-    if (!email || !password || !firstName || !lastName) {
+    if (!email || !password || !firstName || !lastName || !phone) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
@@ -115,7 +115,7 @@ export const register = async (req: Request, res: Response) => {
         password: hashedPassword,
         firstName,
         lastName,
-        phone: phone || null,
+        phone: phone,
         role: userRole,
         firmId: finalFirmId,
         isApproved,
