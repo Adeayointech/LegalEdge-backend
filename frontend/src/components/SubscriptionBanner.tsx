@@ -38,8 +38,9 @@ export function SubscriptionBanner() {
   // ACTIVE — no banner needed
   if (subscriptionStatus === 'ACTIVE') return null;
 
-  // TRIAL — only show when ≤ 7 days left
+  // TRIAL — only show when ≤ 7 days left AND trialEndsAt is known
   if (subscriptionStatus === 'TRIAL') {
+    if (!trialEndsAt) return null; // date not set yet — don't show misleading banner
     const days = daysUntil(trialEndsAt);
     if (days > 7) return null;
     return (

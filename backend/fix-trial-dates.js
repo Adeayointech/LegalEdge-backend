@@ -1,4 +1,6 @@
 const { PrismaClient } = require('@prisma/client');
+
+// Allow passing Railway DATABASE_URL as env var: DATABASE_URL=xxx node fix-trial-dates.js
 const prisma = new PrismaClient();
 
 async function main() {
@@ -8,6 +10,7 @@ async function main() {
     data: { trialEndsAt },
   });
   console.log('Updated', result.count, 'firms with missing trialEndsAt');
+  console.log('Trial ends at:', trialEndsAt.toISOString());
   await prisma.$disconnect();
 }
 
