@@ -48,19 +48,22 @@ export function BillingPage() {
   // After Paystack redirects back with ?ref=...
   const verifyMutation = useMutation({
     mutationFn: (ref: string) => billingAPI.verifyPayment(ref),
-    onSuccess: () => {
+    onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['billing-status'] });
-      navigate('/billing', { replace: true });
+      if (res.data.status === 'success') {
+        navigate('/billing', { replace: true });
+      }
     },
   });
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    const ref = params.get('ref') || params.get('reference') || params.get('trxref');
+    // Paystack appends trxref and reference to the callback URL
+    const ref = params.get('trxref') || params.get('reference') || params.get('ref');
     if (ref) {
       verifyMutation.mutate(ref);
     }
-  }, [location.search]);
+  }, []);
 
   const payMutation = useMutation({
     mutationFn: () => billingAPI.initializePayment(),

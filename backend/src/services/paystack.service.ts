@@ -21,7 +21,7 @@ export const initializePaystackPayment = async (
     email,
     amount: MONTHLY_AMOUNT_KOBO,
     metadata: { firmId, firmName },
-    callback_url: `${frontendUrl}/billing?ref={PAYSTACK_REFERENCE}`,
+    callback_url: `${frontendUrl}/billing`,
     channels: ['card', 'bank', 'ussd', 'bank_transfer'],
   });
   return response.data.data as {
