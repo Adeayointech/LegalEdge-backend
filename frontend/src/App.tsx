@@ -24,6 +24,8 @@ import { ForgotPassword } from './pages/ForgotPassword';
 import { ResetPassword } from './pages/ResetPassword';
 import { VerifyEmail } from './pages/VerifyEmail';
 import { CalendarView } from './components/CalendarView';
+import { BillingPage } from './pages/Billing';
+import { SubscriptionBanner } from './components/SubscriptionBanner';
 
 function App() {
   return (
@@ -159,6 +161,16 @@ function App() {
             <ProtectedRoute>
               <Layout>
                 <Notifications />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/billing"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <BillingPage />
               </Layout>
             </ProtectedRoute>
           }
@@ -674,6 +686,14 @@ function Layout({ children }: { children: React.ReactNode }) {
                       >
                         My Profile
                       </a>
+                      {user?.role !== 'PLATFORM_ADMIN' && (
+                        <a
+                          href="/billing"
+                          className="block px-4 py-2 text-slate-300 hover:bg-amber-500/20 hover:text-amber-400 transition-colors"
+                        >
+                          Billing
+                        </a>
+                      )}
                       <button
                         onClick={handleLogout}
                         className="w-full text-left px-4 py-2 text-slate-300 hover:bg-amber-500/20 hover:text-amber-400 transition-colors"
@@ -876,6 +896,7 @@ function Layout({ children }: { children: React.ReactNode }) {
       )}
       
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <SubscriptionBanner />
         {children}
       </div>
     </div>

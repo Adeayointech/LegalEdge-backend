@@ -25,6 +25,14 @@ enum UserRole {
   CLIENT           // View selected documents only
 }
 
+enum SubscriptionStatus {
+  TRIAL
+  ACTIVE
+  GRACE_PERIOD
+  EXPIRED
+  CANCELLED
+}
+
 model User {
   id                String      @id @default(uuid())
   email             String      @unique
@@ -95,6 +103,14 @@ model Firm {
   logo            String?     // URL to logo
   isActive        Boolean     @default(true)
   
+  // Subscription
+  subscriptionStatus    SubscriptionStatus @default(TRIAL)
+  trialEndsAt           DateTime?
+  subscriptionEndsAt    DateTime?
+  gracePeriodEndsAt     DateTime?
+  lastPaymentAt         DateTime?
+  paystackCustomerCode  String?
+
   // Relations
   branches        Branch[]
   users           User[]

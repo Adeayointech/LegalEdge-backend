@@ -91,30 +91,33 @@ import supportRoutes from './routes/support.routes';
 import platformAdminRoutes from './routes/platform-admin.routes';
 import notificationRoutes from './routes/notification.routes';
 import adminRoutes from './routes/admin.routes';
+import billingRoutes from './routes/billing.routes';
+import { requireActiveSubscription } from './middleware/subscription';
 import { initializeSchedulers } from './utils/scheduler';
 
 app.use('/api/auth', authLimiter, authRoutes);
+app.use('/api/billing', billingRoutes);
 app.use('/api/admin', adminRoutes);
-app.use('/api/cases', caseRoutes);
-app.use('/api/clients', clientRoutes);
-app.use('/api/firm', firmRoutes);
-app.use('/api/documents', documentRoutes);
-app.use('/api/deadlines', deadlineRoutes);
-app.use('/api/hearings', hearingRoutes);
-app.use('/api/calendar', calendarRoutes);
-app.use('/api/audit-logs', auditLogRoutes);
-app.use('/api/branches', branchRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/search', searchRoutes);
-app.use('/api/analytics', analyticsRoutes);
-app.use('/api/reminders', reminderRoutes);
-app.use('/api/hearing-reminders', hearingReminderRoutes);
+
+// Apply subscription check to all firm-facing routes
+app.use('/api/cases', requireActiveSubscription, caseRoutes);
+app.use('/api/clients', requireActiveSubscription, clientRoutes);
+app.use('/api/firm', requireActiveSubscription, firmRoutes);
+app.use('/api/documents', requireActiveSubscription, documentRoutes);
+app.use('/api/deadlines', requireActiveSubscription, deadlineRoutes);
+app.use('/api/hearings', requireActiveSubscription, hearingRoutes);
+app.use('/api/calendar', requireActiveSubscription, calendarRoutes);
+app.use('/api/audit-logs', requireActiveSubscription, auditLogRoutes);
+app.use('/api/branches', requireActiveSubscription, branchRoutes);
+app.use('/api/users', requireActiveSubscription, userRoutes);
+app.use('/api/search', requireActiveSubscription, searchRoutes);
+app.use('/api/analytics', requireActiveSubscription, analyticsRoutes);
+app.use('/api/reminders', requireActiveSubscription, reminderRoutes);
+app.use('/api/hearing-reminders', requireActiveSubscription, hearingReminderRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/support', supportRoutes);
 app.use('/api/platform-admin', platformAdminRoutes);
-app.use('/api/notifications', notificationRoutes);
-// app.use('/api/deadlines', deadlineRoutes);
-// app.use('/api/analytics', analyticsRoutes);
+app.use('/api/notifications', requireActiveSubscription, notificationRoutes);
 
 // 404 handler
 app.use((req, res) => {

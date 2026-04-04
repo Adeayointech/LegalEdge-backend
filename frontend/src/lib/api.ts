@@ -216,3 +216,10 @@ export const analyticsAPI = {
     branchId?: string;
   }) => api.get('/analytics', { params }),
 };
+
+// Billing API
+export const billingAPI = {
+  getStatus: () => api.get('/billing/status'),
+  initializePayment: () => api.post('/billing/initialize'),
+  verifyPayment: (reference: string) => api.get(`/billing/verify/${reference}`),
+};

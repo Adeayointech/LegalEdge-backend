@@ -326,4 +326,75 @@ export const initializeSchedulers = () => {
   scheduleDeadlineReminders();
   scheduleOverdueAlerts();
   scheduleHearingReminders();
+  scheduleSubscriptionChecks();
+};
+
+// Run every day at 6 AM — check trial/subscription expiry
+const scheduleSubscriptionChecks = () => {
+  cron.schedule('0 6 * * *', async () => {
+    console.log('Running subscription expiry check...');
+    const now = new Date();
+
+    try {
+      // 1. TRIAL firms whose trial has ended → move to GRACE_PERIOD
+      const expiredTrials = await prisma.firm.findMany({
+        where: {
+          subscriptionStatus: 'TRIAL',
+          trialEndsAt: { lt: now },
+        },
+        select: { id: true, name: true, email: true },
+      });
+
+      for (const firm of expiredTrials) {
+        const gracePeriodEndsAt = new Date(now);
+        gracePeriodEndsAt.setDate(gracePeriodEndsAt.getDate() + 7);
+        await prisma.firm.update({
+          where: { id: firm.id },
+          data: { subscriptionStatus: 'GRACE_PERIOD', gracePeriodEndsAt },
+        });
+        console.log(`[SUBSCRIPTION] Trial expired for firm: ${firm.name} — grace period started`);
+      }
+
+      // 2. ACTIVE subscriptions that have ended → move to GRACE_PERIOD
+      const expiredSubscriptions = await prisma.firm.findMany({
+        where: {
+          subscriptionStatus: 'ACTIVE',
+          subscriptionEndsAt: { lt: now },
+        },
+        select: { id: true, name: true },
+      });
+
+      for (const firm of expiredSubscriptions) {
+        const gracePeriodEndsAt = new Date(now);
+        gracePeriodEndsAt.setDate(gracePeriodEndsAt.getDate() + 7);
+        await prisma.firm.update({
+          where: { id: firm.id },
+          data: { subscriptionStatus: 'GRACE_PERIOD', gracePeriodEndsAt },
+        });
+        console.log(`[SUBSCRIPTION] Subscription expired for firm: ${firm.name} — grace period started`);
+      }
+
+      // 3. GRACE_PERIOD firms whose grace has ended → EXPIRED (full lock out)
+      const expiredGrace = await prisma.firm.findMany({
+        where: {
+          subscriptionStatus: 'GRACE_PERIOD',
+          gracePeriodEndsAt: { lt: now },
+        },
+        select: { id: true, name: true },
+      });
+
+      for (const firm of expiredGrace) {
+        await prisma.firm.update({
+          where: { id: firm.id },
+          data: { subscriptionStatus: 'EXPIRED' },
+        });
+        console.log(`[SUBSCRIPTION] Grace period ended for firm: ${firm.name} — LOCKED OUT`);
+      }
+
+    } catch (error) {
+      console.error('Error in subscription check cron job:', error);
+    }
+  });
+
+  console.log('Subscription check scheduler initialized (runs daily at 6:00 AM)');
 };

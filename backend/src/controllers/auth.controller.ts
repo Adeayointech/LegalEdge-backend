@@ -70,6 +70,8 @@ export const register = async (req: Request, res: Response) => {
           name: firmName,
           email: email,
           inviteCode,
+          subscriptionStatus: 'TRIAL',
+          trialEndsAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
         },
       });
       finalFirmId = newFirm.id;
