@@ -5,6 +5,8 @@ import prisma from '../lib/prisma';
 import {
   initializePaystackPayment,
   verifyPaystackTransaction,
+  getPlanMonths,
+  PlanKey,
 } from '../services/paystack.service';
 
 // GET /billing/status
@@ -42,12 +44,14 @@ export const initializePayment = async (req: AuthRequest, res: Response) => {
     const firm = await prisma.firm.findUnique({ where: { id: req.user.firmId! } });
     if (!firm) return res.status(404).json({ error: 'Firm not found' });
 
+    const { plan } = req.body as { plan?: PlanKey };
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
     const result = await initializePaystackPayment(
       req.user.email,
       firm.id,
       firm.name,
-      frontendUrl
+      frontendUrl,
+      plan ?? 'monthly'
     );
 
     res.json({ url: result.authorization_url, reference: result.reference });
@@ -69,14 +73,15 @@ export const verifyPayment = async (req: AuthRequest, res: Response) => {
       const firmId = transaction.metadata?.firmId;
       if (firmId) {
         const now = new Date();
-        const nextMonth = new Date(now);
-        nextMonth.setMonth(nextMonth.getMonth() + 1);
+        const months = getPlanMonths(transaction.metadata?.plan);
+        const subscriptionEndsAt = new Date(now);
+        subscriptionEndsAt.setMonth(subscriptionEndsAt.getMonth() + months);
 
         await prisma.firm.update({
           where: { id: firmId },
           data: {
             subscriptionStatus: 'ACTIVE',
-            subscriptionEndsAt: nextMonth,
+            subscriptionEndsAt,
             gracePeriodEndsAt: null,
             lastPaymentAt: now,
             paystackCustomerCode: transaction.customer?.customer_code ?? undefined,
@@ -114,14 +119,15 @@ export const handleWebhook = async (req: Request, res: Response) => {
       if (!firmId) return res.sendStatus(200);
 
       const now = new Date();
-      const nextMonth = new Date(now);
-      nextMonth.setMonth(nextMonth.getMonth() + 1);
+      const months = getPlanMonths(data?.metadata?.plan);
+      const subscriptionEndsAt = new Date(now);
+      subscriptionEndsAt.setMonth(subscriptionEndsAt.getMonth() + months);
 
       await prisma.firm.update({
         where: { id: firmId },
         data: {
           subscriptionStatus: 'ACTIVE',
-          subscriptionEndsAt: nextMonth,
+          subscriptionEndsAt,
           gracePeriodEndsAt: null,
           lastPaymentAt: now,
           paystackCustomerCode: data?.customer?.customer_code ?? undefined,

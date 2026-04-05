@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { billingAPI } from '../lib/api';
 import { useAuthStore } from '../store/authStore';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { CheckCircle, CreditCard, AlertTriangle, Clock, XCircle } from 'lucide-react';
 
@@ -16,6 +16,15 @@ interface BillingStatus {
   gracePeriodEndsAt: string | null;
   lastPaymentAt: string | null;
 }
+
+type PlanKey = 'monthly' | 'quarterly' | 'biannual' | 'annual';
+
+const PLANS: Record<PlanKey, { label: string; price: number; duration: string; perMonth: string; badge: string | null }> = {
+  monthly:   { label: 'Monthly',   price: 30000,  duration: 'month',    perMonth: '₦30,000 / mo',         badge: null },
+  quarterly: { label: 'Quarterly', price: 80000,  duration: '3 months', perMonth: '₦26,667 / mo',         badge: 'Save ₦10,000' },
+  biannual:  { label: '6 Months',  price: 150000, duration: '6 months', perMonth: '₦25,000 / mo',         badge: 'Save ₦30,000' },
+  annual:    { label: 'Yearly',    price: 270000, duration: 'year',     perMonth: '₦22,500 / mo',         badge: 'Best Value' },
+};
 
 function daysUntil(dateStr: string | null): number {
   if (!dateStr) return 0;
@@ -35,6 +44,7 @@ export function BillingPage() {
   const queryClient = useQueryClient();
   const location = useLocation();
   const navigate = useNavigate();
+  const [selectedPlan, setSelectedPlan] = useState<PlanKey>('monthly');
 
   const { data: billing, isLoading } = useQuery<BillingStatus>({
     queryKey: ['billing-status'],
@@ -66,7 +76,7 @@ export function BillingPage() {
   }, []);
 
   const payMutation = useMutation({
-    mutationFn: () => billingAPI.initializePayment(),
+    mutationFn: (plan: PlanKey) => billingAPI.initializePayment(plan),
     onSuccess: (res) => {
       window.location.href = res.data.url;
     },
@@ -199,11 +209,13 @@ export function BillingPage() {
         </div>
       </div>
 
-      {/* Plan details */}
+      {/* Plan selector */}
       <div className="rounded-xl border border-slate-700 bg-slate-800/50 p-6 space-y-4">
         <h2 className="text-white font-semibold text-lg flex items-center gap-2">
           <CreditCard className="w-5 h-5 text-amber-400" /> Professional Plan
         </h2>
+
+        {/* Features */}
         <ul className="space-y-2 text-sm text-slate-300">
           {[
             'Unlimited cases and documents',
@@ -219,14 +231,43 @@ export function BillingPage() {
             </li>
           ))}
         </ul>
+
+        {/* Plan cards */}
+        <div className="grid grid-cols-2 gap-3 pt-1">
+          {(Object.keys(PLANS) as PlanKey[]).map((key) => {
+            const plan = PLANS[key];
+            return (
+              <button
+                key={key}
+                onClick={() => setSelectedPlan(key)}
+                className={`relative rounded-lg border-2 p-4 text-left transition-all ${
+                  selectedPlan === key
+                    ? 'border-amber-500 bg-amber-500/10'
+                    : 'border-slate-600 bg-slate-700/50 hover:border-slate-500'
+                }`}
+              >
+                {plan.badge && (
+                  <span className="absolute -top-2.5 right-3 text-xs font-bold bg-amber-500 text-slate-900 px-2 py-0.5 rounded-full">
+                    {plan.badge}
+                  </span>
+                )}
+                <p className="font-semibold text-white text-sm">{plan.label}</p>
+                <p className="text-xl font-bold text-white mt-1">₦{plan.price.toLocaleString()}</p>
+                <p className="text-xs text-slate-400 mt-0.5">{plan.perMonth}</p>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Subscribe */}
         <div className="pt-2 border-t border-slate-700 flex items-end justify-between">
           <div>
-            <span className="text-3xl font-bold text-white">₦30,000</span>
-            <span className="text-slate-400 ml-1">/month</span>
+            <span className="text-3xl font-bold text-white">₦{PLANS[selectedPlan].price.toLocaleString()}</span>
+            <span className="text-slate-400 ml-1">/ {PLANS[selectedPlan].duration}</span>
           </div>
           {isSuperAdmin && (
             <button
-              onClick={() => payMutation.mutate()}
+              onClick={() => payMutation.mutate(selectedPlan)}
               disabled={payMutation.isPending}
               className="bg-gradient-to-r from-amber-500 to-yellow-600 text-slate-900 px-6 py-2.5 rounded-lg font-semibold hover:from-amber-400 hover:to-yellow-500 disabled:opacity-50 transition-all shadow-lg"
             >
