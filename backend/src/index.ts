@@ -17,9 +17,35 @@ app.set('trust proxy', 1);
 app.use(helmet());
 
 // CORS configuration
-const allowedOrigins = process.env.ALLOWED_ORIGINS 
+const configuredOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',')
   : [process.env.FRONTEND_URL || 'http://localhost:3000'];
+
+const allowedOrigins = Array.from(
+  new Set(
+    configuredOrigins
+      .map((origin) => origin.trim())
+      .filter(Boolean)
+      .flatMap((origin) => {
+        try {
+          const url = new URL(origin);
+
+          if (url.hostname === 'localhost' || url.hostname.startsWith('127.')) {
+            return [origin];
+          }
+
+          const alternateUrl = new URL(origin);
+          alternateUrl.hostname = url.hostname.startsWith('www.')
+            ? url.hostname.slice(4)
+            : `www.${url.hostname}`;
+
+          return [origin, alternateUrl.origin];
+        } catch {
+          return [origin];
+        }
+      })
+  )
+);
 
 app.use(cors({
   origin: (origin, callback) => {

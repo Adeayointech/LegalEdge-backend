@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authAPI } from '../lib/api';
 import { useAuthStore } from '../store/authStore';
-import axios from 'axios';
 
 export function RegisterForm() {
   const [registrationType, setRegistrationType] = useState<'create' | 'join'>('create');
@@ -50,7 +49,7 @@ export function RegisterForm() {
     setLoading(true);
 
     try {
-      const response = await axios.post('https://legaledge-backend-production.up.railway.app/api/auth/register', {
+      const response = await authAPI.register({
         email: formData.email,
         password: formData.password,
         firstName: formData.firstName,
@@ -60,12 +59,21 @@ export function RegisterForm() {
         firmCode: registrationType === 'join' ? formData.firmCode : undefined,
       });
 
-      const { user, token, firmCode, requiresApproval, message } = response.data;
+      const { user, token, firmCode, requiresApproval, requiresEmailVerification } = response.data;
       
       // If account requires approval (joined existing firm)
       if (requiresApproval) {
         setError(''); // Clear any errors
         setGeneratedFirmCode('PENDING_APPROVAL'); // Use special flag to show approval message
+        return;
+      }
+
+      if (requiresEmailVerification) {
+        if (firmCode) {
+          setGeneratedFirmCode(firmCode);
+        } else {
+          setGeneratedFirmCode('EMAIL_VERIFICATION_REQUIRED');
+        }
         return;
       }
       
@@ -132,6 +140,9 @@ export function RegisterForm() {
                     Your account has been created and is <strong className="text-orange-400">pending admin approval</strong>.
                   </p>
                   <p className="text-slate-300">
+                    Please verify your email from your inbox first. You can log in only after both verification and admin approval.
+                  </p>
+                  <p className="text-slate-300">
                     You will be able to log in once a firm administrator approves your account.
                   </p>
                   <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-lg p-4 mt-4">
@@ -148,6 +159,27 @@ export function RegisterForm() {
                     💡 <strong>Tip:</strong> Contact your firm administrator to expedite the approval process.
                   </p>
                 </div>
+                <button
+                  onClick={() => navigate('/login')}
+                  className="w-full mt-6 bg-gradient-to-r from-amber-500 to-yellow-600 text-slate-900 py-3 px-6 rounded-lg hover:from-amber-400 hover:to-yellow-500 transition-all font-bold shadow-lg hover:shadow-amber-500/50"
+                >
+                  Go to Login
+                </button>
+              </div>
+            ) : generatedFirmCode === 'EMAIL_VERIFICATION_REQUIRED' ? (
+              <div className="bg-gradient-to-br from-blue-500/20 to-cyan-500/20 backdrop-blur-sm border-2 border-blue-500/50 rounded-xl p-6">
+                <div className="w-16 h-16 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l9 6 9-6M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-3">Check Your Email 📩</h3>
+                <p className="text-slate-300 mb-2">
+                  Registration successful. We sent a verification link to your email address.
+                </p>
+                <p className="text-slate-300">
+                  Verify your email first, then return to login.
+                </p>
                 <button
                   onClick={() => navigate('/login')}
                   className="w-full mt-6 bg-gradient-to-r from-amber-500 to-yellow-600 text-slate-900 py-3 px-6 rounded-lg hover:from-amber-400 hover:to-yellow-500 transition-all font-bold shadow-lg hover:shadow-amber-500/50"
@@ -173,14 +205,17 @@ export function RegisterForm() {
                 <p className="text-slate-300 mb-2">
                   ⚠️ <strong className="text-amber-400">Save this code!</strong> Share it with team members to invite them to your firm.
                 </p>
+                <p className="text-slate-300 mb-2">
+                  We also sent an email verification link. Verify your email before your first login.
+                </p>
                 <p className="text-sm text-slate-500">
                   You can also find this code in your firm settings later.
                 </p>
                 <button
-                  onClick={() => navigate('/dashboard')}
+                  onClick={() => navigate('/login')}
                   className="w-full mt-6 bg-gradient-to-r from-amber-500 to-yellow-600 text-slate-900 py-3 px-6 rounded-lg hover:from-amber-400 hover:to-yellow-500 transition-all font-bold shadow-lg hover:shadow-amber-500/50"
                 >
-                  Continue to Dashboard
+                  Go to Login
                 </button>
               </div>
             )}

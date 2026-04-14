@@ -110,7 +110,11 @@ export const register = async (req: Request, res: Response) => {
     // SUPER_ADMIN (firm creator) is auto-approved, others need admin approval
     const isApproved = firmName ? true : false;
 
-    // Create user (email verification disabled until domain is verified)
+    const crypto = await import('crypto');
+    const emailVerifyToken = crypto.randomBytes(32).toString('hex');
+    const emailVerifyExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+    // Create user with email verification required
     const user = await prisma.user.create({
       data: {
         email,
@@ -121,7 +125,9 @@ export const register = async (req: Request, res: Response) => {
         role: userRole,
         firmId: finalFirmId,
         isApproved,
-        emailVerified: true,
+        emailVerified: false,
+        emailVerifyToken,
+        emailVerifyExpiry,
       },
       select: {
         id: true,
@@ -224,34 +230,46 @@ export const register = async (req: Request, res: Response) => {
       }).catch(err => console.error('Failed to send welcome email:', err));
     }
 
+    // Send verification link email for all new users
+    const verifyLink = `${frontendUrl}/verify-email?token=${emailVerifyToken}`;
+    await sendEmail({
+      to: user.email,
+      subject: 'Verify your Lawravel email address',
+      html: `
+        <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;">
+          <h2 style="color:#1e3a5f;">Verify your email</h2>
+          <p>Hi ${user.firstName}, click below to verify your email address. This link expires in 24 hours.</p>
+          <p style="text-align:center;margin:24px 0;">
+            <a href="${verifyLink}" style="background:#2563eb;color:#fff;padding:12px 28px;border-radius:6px;text-decoration:none;font-weight:bold;">Verify Email Address</a>
+          </p>
+          <p style="color:#9ca3af;font-size:12px;">If you didn't create a Lawravel account, you can ignore this email.</p>
+        </div>
+      `,
+      text: `Verify your Lawravel email: ${verifyLink}`,
+    }).catch(err => console.error('Failed to send verification email:', err));
+
     // If user is approved (SUPER_ADMIN), generate token and log them in
     // Otherwise, return success message without token (requires approval)
     if (isApproved) {
-      const token = generateToken({
-        userId: user.id,
-        email: user.email,
-        role: user.role,
-        firmId: user.firmId || undefined,
-        branchId: user.branchId || undefined,
-      });
-      
       return res.status(201).json({ 
+        message: 'Registration successful! Please verify your email address before signing in.',
         user, 
-        token,
+        requiresEmailVerification: true,
         ...(createdFirmCode && { firmCode: createdFirmCode })
       });
     }
     
     // User needs approval - don't provide token
     res.status(201).json({ 
-      message: 'Registration successful! Your account is pending admin approval. You will be able to log in once an administrator approves your account.',
+      message: 'Registration successful! Please verify your email and wait for admin approval before you can log in.',
       user: {
         id: user.id,
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
       },
-      requiresApproval: true
+      requiresApproval: true,
+      requiresEmailVerification: true,
     });
   } catch (error: any) {
     console.error('Registration error:', error);
@@ -291,13 +309,12 @@ export const login = async (req: Request, res: Response) => {
       return res.status(403).json({ error: 'Your account has been deactivated. Please contact your firm administrator.' });
     }
 
-    // Email verification disabled until domain is verified
-    // if (user.role !== 'PLATFORM_ADMIN' && !user.emailVerified) {
-    //   return res.status(403).json({
-    //     error: 'Please verify your email address before logging in. Check your inbox for the verification link.',
-    //     requiresEmailVerification: true,
-    //   });
-    // }
+    if (user.role !== 'PLATFORM_ADMIN' && !user.emailVerified) {
+      return res.status(403).json({
+        error: 'Please verify your email address before logging in. Check your inbox for the verification link.',
+        requiresEmailVerification: true,
+      });
+    }
 
     // Check if the firm is suspended (skip for PLATFORM_ADMIN — they have no firm)
     if (user.firmId && user.role !== 'PLATFORM_ADMIN') {
