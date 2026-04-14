@@ -270,6 +270,7 @@ export function Profile() {
           <button
             onClick={() => setShowPasswordModal(true)}
             className="flex items-center gap-2 px-4 py-2 bg-slate-700/50 text-white rounded-lg hover:bg-slate-700 transition-colors border border-slate-600"
+          >
             <Key size={16} />
             Change Password
           </button>
