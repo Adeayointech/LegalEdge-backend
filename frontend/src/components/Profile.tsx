@@ -270,7 +270,6 @@ export function Profile() {
           <button
             onClick={() => setShowPasswordModal(true)}
             className="flex items-center gap-2 px-4 py-2 bg-slate-700/50 text-white rounded-lg hover:bg-slate-700 transition-colors border border-slate-600"
-          >
             <Key size={16} />
             Change Password
           </button>
@@ -611,11 +610,6 @@ export function Profile() {
                 />
               </div>
 
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <p className="text-sm text-blue-800">
-                  💡 <strong>Tip:</strong> Include any error messages, screenshots, or steps to reproduce the issue for faster resolution.
-                </p>
-              </div>
             </div>
 
             <div className="flex gap-3 px-6 py-4 bg-gray-50 rounded-b-lg flex-shrink-0 border-t border-gray-200">
