@@ -18,6 +18,7 @@ export function RegisterForm() {
   const [generatedFirmCode, setGeneratedFirmCode] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
@@ -412,9 +413,26 @@ export function RegisterForm() {
               </div>
             </div>
 
+            <div className="flex items-start gap-3">
+              <input
+                type="checkbox"
+                id="terms"
+                checked={agreedToTerms}
+                onChange={(e) => setAgreedToTerms(e.target.checked)}
+                required
+                className="mt-1 w-4 h-4 rounded border-slate-500 bg-slate-700 text-amber-500 focus:ring-amber-500 cursor-pointer"
+              />
+              <label htmlFor="terms" className="text-sm text-slate-300 cursor-pointer">
+                I agree to the{' '}
+                <a href="/terms" target="_blank" className="text-amber-400 hover:text-amber-300 underline">Terms of Service</a>
+                {' '}and{' '}
+                <a href="/privacy" target="_blank" className="text-amber-400 hover:text-amber-300 underline">Privacy Policy</a>
+              </label>
+            </div>
+
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || !agreedToTerms}
               className="w-full bg-gradient-to-r from-amber-500 to-yellow-600 text-slate-900 py-4 px-6 rounded-lg hover:from-amber-400 hover:to-yellow-500 focus:outline-none focus:ring-2 focus:ring-amber-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-bold text-lg shadow-lg hover:shadow-amber-500/50"
             >
               {loading ? 'Processing...' : (registrationType === 'create' ? 'Create Firm & Register' : 'Join Firm & Register')}
