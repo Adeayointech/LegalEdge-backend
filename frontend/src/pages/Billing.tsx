@@ -82,6 +82,13 @@ export function BillingPage() {
     },
   });
 
+  const cancelMutation = useMutation({
+    mutationFn: () => billingAPI.cancelSubscription(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['billing-status'] });
+    },
+  });
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -266,13 +273,28 @@ export function BillingPage() {
             <span className="text-slate-400 ml-1">/ {PLANS[selectedPlan].duration}</span>
           </div>
           {isSuperAdmin && (
-            <button
-              onClick={() => payMutation.mutate(selectedPlan)}
-              disabled={payMutation.isPending}
-              className="bg-gradient-to-r from-amber-500 to-yellow-600 text-slate-900 px-6 py-2.5 rounded-lg font-semibold hover:from-amber-400 hover:to-yellow-500 disabled:opacity-50 transition-all shadow-lg"
-            >
-              {payMutation.isPending ? 'Redirecting…' : subscriptionStatus === 'ACTIVE' ? 'Renew Now' : 'Subscribe Now'}
-            </button>
+            <div className="flex gap-3 items-center">
+              {subscriptionStatus === 'ACTIVE' && (
+                <button
+                  onClick={() => {
+                    if (confirm('Are you sure you want to cancel your subscription? You will lose access when the current period ends.')) {
+                      cancelMutation.mutate();
+                    }
+                  }}
+                  disabled={cancelMutation.isPending}
+                  className="text-red-400 hover:text-red-300 text-sm underline disabled:opacity-50 transition-colors"
+                >
+                  {cancelMutation.isPending ? 'Cancelling…' : 'Cancel Subscription'}
+                </button>
+              )}
+              <button
+                onClick={() => payMutation.mutate(selectedPlan)}
+                disabled={payMutation.isPending}
+                className="bg-gradient-to-r from-amber-500 to-yellow-600 text-slate-900 px-6 py-2.5 rounded-lg font-semibold hover:from-amber-400 hover:to-yellow-500 disabled:opacity-50 transition-all shadow-lg"
+              >
+                {payMutation.isPending ? 'Redirecting…' : subscriptionStatus === 'ACTIVE' ? 'Renew Now' : 'Subscribe Now'}
+              </button>
+            </div>
           )}
           {!isSuperAdmin && (
             <p className="text-slate-400 text-sm">Only the firm admin can manage billing.</p>

@@ -4,6 +4,7 @@ import {
   initializePayment,
   verifyPayment,
   handleWebhook,
+  cancelSubscription,
 } from '../controllers/billing.controller';
 import { authenticate, authorize } from '../middleware/auth';
 import { UserRole } from '@prisma/client';
@@ -28,6 +29,13 @@ router.get(
   authenticate,
   authorize(UserRole.SUPER_ADMIN),
   verifyPayment
+);
+
+router.post(
+  '/cancel',
+  authenticate,
+  authorize(UserRole.SUPER_ADMIN),
+  cancelSubscription
 );
 
 export default router;

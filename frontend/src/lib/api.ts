@@ -222,4 +222,5 @@ export const billingAPI = {
   getStatus: () => api.get('/billing/status'),
   initializePayment: (plan: string) => api.post('/billing/initialize', { plan }),
   verifyPayment: (reference: string) => api.get(`/billing/verify/${reference}`),
+  cancelSubscription: () => api.post('/billing/cancel'),
 };

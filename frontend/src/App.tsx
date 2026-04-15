@@ -296,12 +296,12 @@ function HomePage() {
               </div>
               <div className="grid grid-cols-3 gap-4 sm:gap-8 pt-4">
                 <div className="text-center">
-                  <div className="text-xl sm:text-3xl font-bold text-amber-400">500+</div>
-                  <div className="text-xs sm:text-sm text-slate-400">Law Firms</div>
+                  <div className="text-xl sm:text-3xl font-bold text-amber-400">30-Day</div>
+                  <div className="text-xs sm:text-sm text-slate-400">Free Trial</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-xl sm:text-3xl font-bold text-amber-400">50K+</div>
-                  <div className="text-xs sm:text-sm text-slate-400">Cases Managed</div>
+                  <div className="text-xl sm:text-3xl font-bold text-amber-400">100%</div>
+                  <div className="text-xs sm:text-sm text-slate-400">Cloud-Based</div>
                 </div>
                 <div className="text-center">
                   <div className="text-xl sm:text-3xl font-bold text-amber-400">99.9%</div>
@@ -519,24 +519,20 @@ function HomePage() {
               <h4 className="font-bold text-white mb-4">Product</h4>
               <div className="space-y-2">
                 <a href="#features" className="block text-slate-400 hover:text-amber-400 transition-colors">Features</a>
-                <a href="#" className="block text-slate-400 hover:text-amber-400 transition-colors">Pricing</a>
-                <a href="#" className="block text-slate-400 hover:text-amber-400 transition-colors">Security</a>
+                <a href="/register" className="block text-slate-400 hover:text-amber-400 transition-colors">Get Started</a>
               </div>
             </div>
             <div>
               <h4 className="font-bold text-white mb-4">Company</h4>
               <div className="space-y-2">
-                <a href="#" className="block text-slate-400 hover:text-amber-400 transition-colors">About</a>
-                <a href="#" className="block text-slate-400 hover:text-amber-400 transition-colors">Contact</a>
-                <a href="#" className="block text-slate-400 hover:text-amber-400 transition-colors">Support</a>
+                <a href="/login" className="block text-slate-400 hover:text-amber-400 transition-colors">Login</a>
+                <a href="/register" className="block text-slate-400 hover:text-amber-400 transition-colors">Register</a>
               </div>
             </div>
             <div>
-              <h4 className="font-bold text-white mb-4">Legal</h4>
+              <h4 className="font-bold text-white mb-4">Support</h4>
               <div className="space-y-2">
-                <a href="#" className="block text-slate-400 hover:text-amber-400 transition-colors">Privacy</a>
-                <a href="#" className="block text-slate-400 hover:text-amber-400 transition-colors">Terms</a>
-                <a href="#" className="block text-slate-400 hover:text-amber-400 transition-colors">Compliance</a>
+                <a href="mailto:support@lawravel.com" className="block text-slate-400 hover:text-amber-400 transition-colors">Contact Us</a>
               </div>
             </div>
           </div>

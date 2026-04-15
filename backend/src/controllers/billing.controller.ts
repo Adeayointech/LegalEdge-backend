@@ -97,6 +97,30 @@ export const verifyPayment = async (req: AuthRequest, res: Response) => {
   }
 };
 
+// POST /billing/cancel
+export const cancelSubscription = async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user) return res.status(401).json({ error: 'Authentication required' });
+
+    const firm = await prisma.firm.findUnique({ where: { id: req.user.firmId! } });
+    if (!firm) return res.status(404).json({ error: 'Firm not found' });
+
+    if (firm.subscriptionStatus !== 'ACTIVE' && firm.subscriptionStatus !== 'GRACE_PERIOD') {
+      return res.status(400).json({ error: 'No active subscription to cancel' });
+    }
+
+    await prisma.firm.update({
+      where: { id: req.user.firmId! },
+      data: { subscriptionStatus: 'CANCELLED' },
+    });
+
+    res.json({ message: 'Subscription cancelled successfully' });
+  } catch (error) {
+    console.error('Cancel subscription error:', error);
+    res.status(500).json({ error: 'Failed to cancel subscription' });
+  }
+};
+
 // POST /billing/webhook  (raw body — registered before express.json)
 export const handleWebhook = async (req: Request, res: Response) => {
   try {

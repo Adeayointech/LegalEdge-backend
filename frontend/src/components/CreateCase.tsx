@@ -153,7 +153,7 @@ export function CreateCase() {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <h2 className="text-3xl font-bold text-gray-900 mb-6">Create New Case</h2>
+      <h2 className="text-3xl font-bold text-white mb-6">Create New Case</h2>
 
       {error && (
         <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
