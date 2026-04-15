@@ -26,6 +26,8 @@ import { VerifyEmail } from './pages/VerifyEmail';
 import { CalendarView } from './components/CalendarView';
 import { BillingPage } from './pages/Billing';
 import { SubscriptionBanner } from './components/SubscriptionBanner';
+import { TermsPage } from './pages/Terms';
+import { PrivacyPage } from './pages/Privacy';
 
 function App() {
   return (
@@ -37,6 +39,8 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
+        <Route path="/terms" element={<TermsPage />} />
+        <Route path="/privacy" element={<PrivacyPage />} />
         <Route
           path="/dashboard"
           element={
@@ -514,6 +518,11 @@ function HomePage() {
                     <span className="heading-font text-xl font-bold text-white">Lawravel</span>
               </div>
               <p className="text-slate-400 text-sm">Enterprise legal management for modern law firms.</p>
+              <div className="flex gap-3 mt-4">
+                <a href="https://x.com/lawravel" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-amber-400 transition-colors" aria-label="X (Twitter)">
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.737-8.835L1.254 2.25H8.08l4.261 5.632L18.244 2.25zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77z"/></svg>
+                </a>
+              </div>
             </div>
             <div>
               <h4 className="font-bold text-white mb-4">Product</h4>
@@ -532,7 +541,9 @@ function HomePage() {
             <div>
               <h4 className="font-bold text-white mb-4">Support</h4>
               <div className="space-y-2">
-                <a href="mailto:support@lawravel.com" className="block text-slate-400 hover:text-amber-400 transition-colors">Contact Us</a>
+                <a href="mailto:support@lawravel.com" className="block text-slate-400 hover:text-amber-400 transition-colors">support@lawravel.com</a>
+                <a href="/terms" className="block text-slate-400 hover:text-amber-400 transition-colors">Terms of Service</a>
+                <a href="/privacy" className="block text-slate-400 hover:text-amber-400 transition-colors">Privacy Policy</a>
               </div>
             </div>
           </div>

@@ -22,7 +22,7 @@ const DOCUMENT_STATUSES = [
 
 export function DocumentUpload({ caseId, onSuccess, onCancel }: DocumentUploadProps) {
   const queryClient = useQueryClient();
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [dragActive, setDragActive] = useState(false);
   const [error, setError] = useState('');
   
@@ -65,31 +65,36 @@ export function DocumentUpload({ caseId, onSuccess, onCancel }: DocumentUploadPr
     e.stopPropagation();
     setDragActive(false);
     
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleFile(e.dataTransfer.files[0]);
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      handleFiles(Array.from(e.dataTransfer.files));
     }
   };
 
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      handleFile(e.target.files[0]);
+    if (e.target.files && e.target.files.length > 0) {
+      handleFiles(Array.from(e.target.files));
     }
   };
 
-  const handleFile = (file: File) => {
-    // Check file size (50MB max)
-    if (file.size > 50 * 1024 * 1024) {
-      setError('File size must be less than 50MB');
+  const handleFiles = (files: File[]) => {
+    // Check file size (50MB max per file)
+    const oversized = files.filter(f => f.size > 50 * 1024 * 1024);
+    if (oversized.length > 0) {
+      setError(`File(s) too large (max 50MB): ${oversized.map(f => f.name).join(', ')}`);
       return;
     }
     
-    setSelectedFile(file);
+    setSelectedFiles(prev => {
+      const existing = new Set(prev.map(f => f.name + f.size));
+      const newFiles = files.filter(f => !existing.has(f.name + f.size));
+      return [...prev, ...newFiles];
+    });
     setError('');
     
-    // Auto-fill title if empty
-    if (!formData.title) {
-      const nameWithoutExt = file.name.replace(/\.[^/.]+$/, '');
-      setFormData({ ...formData, title: nameWithoutExt });
+    // Auto-fill title from first file if empty
+    if (!formData.title && files[0]) {
+      const nameWithoutExt = files[0].name.replace(/\.[^/.]+$/, '');
+      setFormData(prev => ({ ...prev, title: nameWithoutExt }));
     }
   };
 
@@ -101,28 +106,31 @@ export function DocumentUpload({ caseId, onSuccess, onCancel }: DocumentUploadPr
     e.preventDefault();
     setError('');
     
-    if (!selectedFile) {
-      setError('Please select a file');
+    if (selectedFiles.length === 0) {
+      setError('Please select at least one file');
       return;
     }
     
-    if (!formData.title) {
+    if (!formData.title && selectedFiles.length === 1) {
       setError('Please enter a document title');
       return;
     }
-    
-    const data = new FormData();
-    data.append('file', selectedFile);
-    data.append('caseId', caseId);
-    data.append('title', formData.title);
-    data.append('documentType', formData.documentType);
-    data.append('status', formData.status);
-    
-    if (formData.description) data.append('description', formData.description);
-    if (formData.filedDate) data.append('filedDate', formData.filedDate);
-    if (formData.filedBy) data.append('filedBy', formData.filedBy);
-    
-    uploadMutation.mutate(data);
+
+    // Upload files sequentially
+    for (let i = 0; i < selectedFiles.length; i++) {
+      const file = selectedFiles[i];
+      const data = new FormData();
+      data.append('file', file);
+      data.append('caseId', caseId);
+      // Use form title for single file, filename for multiple
+      data.append('title', selectedFiles.length === 1 ? formData.title : file.name.replace(/\.[^/.]+$/, ''));
+      data.append('documentType', formData.documentType);
+      data.append('status', formData.status);
+      if (formData.description) data.append('description', formData.description);
+      if (formData.filedDate) data.append('filedDate', formData.filedDate);
+      if (formData.filedBy) data.append('filedBy', formData.filedBy);
+      await uploadMutation.mutateAsync(data);
+    }
   };
 
   const formatFileSize = (bytes: number) => {
@@ -154,22 +162,31 @@ export function DocumentUpload({ caseId, onSuccess, onCancel }: DocumentUploadPr
           onDragOver={handleDrag}
           onDrop={handleDrop}
         >
-          {selectedFile ? (
-            <div className="flex items-center justify-between bg-slate-700/50 p-4 rounded">
-              <div className="flex items-center gap-3">
-                <FileText className="w-8 h-8 text-amber-400" />
-                <div className="text-left">
-                  <p className="font-medium text-white">{selectedFile.name}</p>
-                  <p className="text-sm text-gray-300">{formatFileSize(selectedFile.size)}</p>
+          {selectedFiles.length > 0 ? (
+            <div className="space-y-2">
+              {selectedFiles.map((file, idx) => (
+                <div key={idx} className="flex items-center justify-between bg-slate-700/50 p-3 rounded">
+                  <div className="flex items-center gap-3">
+                    <FileText className="w-6 h-6 text-amber-400 shrink-0" />
+                    <div className="text-left">
+                      <p className="font-medium text-white text-sm">{file.name}</p>
+                      <p className="text-xs text-gray-300">{formatFileSize(file.size)}</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedFiles(prev => prev.filter((_, i) => i !== idx))}
+                    className="text-red-400 hover:text-red-300 ml-2"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
                 </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setSelectedFile(null)}
-                className="text-red-600 hover:text-red-800"
-              >
-                <X className="w-5 h-5" />
-              </button>
+              ))}
+              <label className="inline-flex items-center gap-2 text-sm text-amber-400 hover:text-amber-300 cursor-pointer mt-1">
+                <Upload className="w-4 h-4" />
+                Add more files
+                <input type="file" multiple onChange={handleFileInput} className="hidden" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt" />
+              </label>
             </div>
           ) : (
             <div>
@@ -179,9 +196,10 @@ export function DocumentUpload({ caseId, onSuccess, onCancel }: DocumentUploadPr
                 PDF, Word, Excel, Images, Text (Max 50MB)
               </p>
               <label className="inline-block px-4 py-2 bg-gradient-to-r from-amber-500 to-yellow-600 text-slate-900 rounded-lg cursor-pointer hover:from-amber-400 hover:to-yellow-500 font-semibold transition-all shadow-lg">
-                Choose File
+                Choose Files
                 <input
                   type="file"
+                  multiple
                   onChange={handleFileInput}
                   className="hidden"
                   accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt"
@@ -195,14 +213,14 @@ export function DocumentUpload({ caseId, onSuccess, onCancel }: DocumentUploadPr
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-gray-300 mb-1">
-              Document Title *
+              Document Title {selectedFiles.length <= 1 ? '*' : '(optional — filename used for multiple files)'}
             </label>
             <input
               type="text"
               name="title"
               value={formData.title}
               onChange={handleChange}
-              required
+              required={selectedFiles.length <= 1}
               placeholder="e.g., Motion to Dismiss"
               className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 text-white placeholder-gray-400"
             />
@@ -297,10 +315,10 @@ export function DocumentUpload({ caseId, onSuccess, onCancel }: DocumentUploadPr
         <div className="flex gap-3 pt-4">
           <button
             type="submit"
-            disabled={uploadMutation.isPending || !selectedFile}
+            disabled={uploadMutation.isPending || selectedFiles.length === 0}
             className="flex-1 bg-gradient-to-r from-amber-500 to-yellow-600 text-slate-900 py-2 px-4 rounded-lg hover:from-amber-400 hover:to-yellow-500 disabled:bg-gray-600 disabled:cursor-not-allowed transition-all font-semibold shadow-lg"
           >
-            {uploadMutation.isPending ? 'Uploading...' : 'Upload Document'}
+            {uploadMutation.isPending ? `Uploading${selectedFiles.length > 1 ? ` (${selectedFiles.length} files)` : ''}...` : `Upload ${selectedFiles.length > 1 ? selectedFiles.length + ' Documents' : 'Document'}`}
           </button>
           {onCancel && (
             <button
