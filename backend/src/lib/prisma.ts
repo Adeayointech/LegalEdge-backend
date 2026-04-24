@@ -34,6 +34,23 @@ prisma.$connect()
     process.exit(1);
   });
 
+// Keepalive: ping DB every 4 minutes to prevent Railway closing idle connections.
+// If the ping fails the connection is already dead — reconnect immediately.
+setInterval(async () => {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+  } catch {
+    console.error('DB keepalive failed, reconnecting...');
+    try {
+      await prisma.$disconnect();
+      await prisma.$connect();
+      console.log('DB reconnected successfully');
+    } catch (reconnectError) {
+      console.error('DB reconnect failed:', reconnectError);
+    }
+  }
+}, 4 * 60 * 1000); // every 4 minutes
+
 // Graceful shutdown
 process.on('beforeExit', async () => {
   console.log('Disconnecting from database...');
