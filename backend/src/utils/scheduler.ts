@@ -5,10 +5,8 @@ import { sendDeadlineReminderSMS, sendOverdueDeadlineSMS, sendHearingReminderSMS
 import { createNotification } from '../services/notification.service';
 import { NotificationType } from '@prisma/client';
 
-// Run every day at 8 AM
-const scheduleDeadlineReminders = () => {
-  // Check for deadlines and send reminders every day at 8:00 AM
-  cron.schedule('0 8 * * *', async () => {
+// Exported so they can be triggered manually (e.g. for testing)
+export const runDeadlineReminders = async () => {
     console.log('Running deadline reminder check...');
     
     try {
@@ -110,14 +108,15 @@ const scheduleDeadlineReminders = () => {
     } catch (error) {
       console.error('Error in deadline reminder cron job:', error);
     }
-  });
+};
 
+// Run every day at 8 AM
+const scheduleDeadlineReminders = () => {
+  cron.schedule('0 8 * * *', runDeadlineReminders);
   console.log('Deadline reminder scheduler initialized (runs daily at 8:00 AM)');
 };
 
-// Also check for overdue deadlines every day at 9 AM
-const scheduleOverdueAlerts = () => {
-  cron.schedule('0 9 * * *', async () => {
+export const runOverdueAlerts = async () => {
     console.log('Running overdue deadline check...');
     
     try {
@@ -208,14 +207,15 @@ const scheduleOverdueAlerts = () => {
     } catch (error) {
       console.error('Error in overdue deadline cron job:', error);
     }
-  });
+};
 
+// Also check for overdue deadlines every day at 9 AM
+const scheduleOverdueAlerts = () => {
+  cron.schedule('0 9 * * *', runOverdueAlerts);
   console.log('Overdue deadline scheduler initialized (runs daily at 9:00 AM)');
 };
 
-// Schedule hearing reminders - runs every day at 7:30 AM
-const scheduleHearingReminders = () => {
-  cron.schedule('30 7 * * *', async () => {
+export const runHearingReminders = async () => {
     console.log('Running hearing reminder check...');
     
     try {
@@ -317,8 +317,11 @@ const scheduleHearingReminders = () => {
     } catch (error) {
       console.error('Error in hearing reminder cron job:', error);
     }
-  });
+};
 
+// Schedule hearing reminders - runs every day at 7:30 AM
+const scheduleHearingReminders = () => {
+  cron.schedule('30 7 * * *', runHearingReminders);
   console.log('Hearing reminder scheduler initialized (runs daily at 7:30 AM)');
 };
 

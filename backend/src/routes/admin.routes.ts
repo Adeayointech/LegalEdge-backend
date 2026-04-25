@@ -2,6 +2,7 @@ import express from 'express';
 import prisma from '../lib/prisma';
 import { authenticate, AuthRequest } from '../middleware/auth';
 import { Response } from 'express';
+import { runDeadlineReminders, runOverdueAlerts, runHearingReminders } from '../utils/scheduler';
 
 const router = express.Router();
 
@@ -46,6 +47,25 @@ router.post('/bootstrap-platform-admin', authenticate, async (req: AuthRequest, 
   } catch (error) {
     console.error('Bootstrap error:', error);
     res.status(500).json({ error: 'Bootstrap failed' });
+  }
+});
+
+// TEMPORARY TEST ENDPOINT — remove after testing
+// POST /api/admin/run-reminders
+// Body: { "secret": "<BOOTSTRAP_ADMIN_SECRET value>" }
+router.post('/run-reminders', authenticate, async (req: AuthRequest, res: Response) => {
+  const secret = process.env.BOOTSTRAP_ADMIN_SECRET;
+  if (!secret || req.body.secret !== secret) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+  try {
+    await runDeadlineReminders();
+    await runOverdueAlerts();
+    await runHearingReminders();
+    res.json({ success: true, message: 'All reminder checks completed — check pm2 logs and your email/notifications.' });
+  } catch (error) {
+    console.error('Manual reminder trigger error:', error);
+    res.status(500).json({ error: 'Reminder run failed', detail: String(error) });
   }
 });
 
