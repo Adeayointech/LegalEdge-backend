@@ -27,7 +27,7 @@ export default function Notifications() {
       const response = await notificationAPI.getNotifications(100);
       return response.data as Notification[];
     },
-    refetchInterval: 30000, // Refetch every 30 seconds
+    refetchInterval: 2 * 60_000, // Refetch every 2 minutes
   });
 
   // Fetch unread count

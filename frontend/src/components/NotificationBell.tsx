@@ -29,7 +29,7 @@ export function NotificationBell() {
       const response = await notificationAPI.getNotifications(50);
       return response.data as Notification[];
     },
-    refetchInterval: 30000, // Refetch every 30 seconds
+    refetchInterval: 3 * 60_000, // Refetch every 3 minutes
   });
 
   // Show only top 6 notifications in dropdown
@@ -43,7 +43,7 @@ export function NotificationBell() {
       const response = await notificationAPI.getUnreadCount();
       return response.data;
     },
-    refetchInterval: 30000,
+    refetchInterval: 3 * 60_000, // Refetch every 3 minutes
   });
 
   const unreadCount = unreadData?.count || 0;
