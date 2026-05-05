@@ -109,12 +109,26 @@ io.on('connection', (socket) => {
   });
 });
 
-// Global rate limiting
+// Global rate limiting — keyed by authenticated user ID when JWT is present,
+// otherwise by IP. This prevents one user/IP exhausting another's quota.
 const limiter = rateLimit({
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW || '15') * 60 * 1000,
   max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100'),
   standardHeaders: true,
   legacyHeaders: false,
+  keyGenerator: (req) => {
+    // Extract user ID from Bearer token if present
+    const auth = req.headers.authorization;
+    if (auth?.startsWith('Bearer ')) {
+      try {
+        const payload = jwt.verify(auth.slice(7), process.env.JWT_SECRET!) as any;
+        if (payload?.userId) return `user:${payload.userId}`;
+      } catch {
+        // Invalid token — fall through to IP-based limiting
+      }
+    }
+    return req.ip || 'unknown';
+  },
 });
 app.use(limiter);
 
