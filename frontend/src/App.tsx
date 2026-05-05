@@ -565,13 +565,13 @@ function Layout({ children }: { children: React.ReactNode }) {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const location = useLocation();
   
-  useEffect(() => {
-    if (user) {
-      firmAPI.getDetails()
-        .then(res => setFirmName(res.data.name))
-        .catch(() => setFirmName('Lawravel'));
-    }
-  }, [user]);
+  useQuery({
+    queryKey: ['firm-name'],
+    queryFn: () => firmAPI.getDetails().then(res => { setFirmName(res.data.name); return res.data; }),
+    enabled: !!user && user.role !== 'PLATFORM_ADMIN',
+    staleTime: 30 * 60 * 1000, // 30 minutes — firm name never changes mid-session
+    retry: false,
+  });
   
   const handleLogout = () => {
     clearAuth();

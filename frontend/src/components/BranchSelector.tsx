@@ -10,6 +10,7 @@ export function BranchSelector() {
   const { data: branches } = useQuery({
     queryKey: ['branches'],
     queryFn: () => branchAPI.getAll({ isActive: true }),
+    staleTime: 10 * 60 * 1000, // 10 minutes — branches rarely change
   });
 
   // Load saved branch preference
