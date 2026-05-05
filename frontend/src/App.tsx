@@ -233,8 +233,8 @@ function OpenTicketBadge() {
       const res = await api.get('/platform-admin/stats');
       return res.data;
     },
-    refetchInterval: 60_000, // refresh every minute
-    staleTime: 30_000,
+    refetchInterval: 5 * 60_000, // refresh every 5 minutes
+    staleTime: 60_000,
   });
   const count: number = data?.openTickets ?? 0;
   if (count === 0) return null;

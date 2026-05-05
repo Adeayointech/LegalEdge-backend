@@ -20,24 +20,24 @@ export default function Notifications() {
   const queryClient = useQueryClient();
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
 
-  // Fetch notifications
+  // Fetch notifications (no polling — WebSocket keeps it fresh)
   const { data: notifications, isLoading } = useQuery({
     queryKey: ['notifications'],
     queryFn: async () => {
       const response = await notificationAPI.getNotifications(100);
       return response.data as Notification[];
     },
-    refetchInterval: 2 * 60_000, // Refetch every 2 minutes
+    staleTime: Infinity,
   });
 
-  // Fetch unread count
+  // Fetch unread count (no polling)
   const { data: unreadData } = useQuery({
     queryKey: ['notifications', 'unread-count'],
     queryFn: async () => {
       const response = await notificationAPI.getUnreadCount();
       return response.data;
     },
-    refetchInterval: 30000,
+    staleTime: Infinity,
   });
 
   const unreadCount = unreadData?.count || 0;
