@@ -636,7 +636,9 @@ function Layout({ children }: { children: React.ReactNode }) {
                     {user?.role && ['SUPER_ADMIN', 'SENIOR_PARTNER', 'PARTNER'].includes(user.role) && (
                       <a href="/users" className={getLinkClass('/users')}>Users</a>
                     )}
-                    <a href="/audit-logs" className={getLinkClass('/audit-logs')}>Audit Trail</a>
+                    {user?.role && ['SUPER_ADMIN', 'SENIOR_PARTNER', 'PARTNER'].includes(user.role) && (
+                      <a href="/audit-logs" className={getLinkClass('/audit-logs')}>Audit Trail</a>
+                    )}
                   </>
                 )}
               </div>
@@ -853,17 +855,19 @@ function Layout({ children }: { children: React.ReactNode }) {
                       Users
                     </a>
                   )}
-                  <a
-                    href="/audit-logs"
-                    onClick={() => setShowMobileMenu(false)}
-                    className={`block px-4 py-3 rounded-lg transition-colors ${
-                      isActive('/audit-logs')
-                        ? 'bg-amber-500/20 text-amber-400'
-                        : 'text-slate-300 hover:bg-slate-700/50 hover:text-white'
-                    }`}
-                  >
-                    Audit Trail
-                  </a>
+                  {user?.role && ['SUPER_ADMIN', 'SENIOR_PARTNER', 'PARTNER'].includes(user.role) && (
+                    <a
+                      href="/audit-logs"
+                      onClick={() => setShowMobileMenu(false)}
+                      className={`block px-4 py-3 rounded-lg transition-colors ${
+                        isActive('/audit-logs')
+                          ? 'bg-amber-500/20 text-amber-400'
+                          : 'text-slate-300 hover:bg-slate-700/50 hover:text-white'
+                      }`}
+                    >
+                      Audit Trail
+                    </a>
+                  )}
                   <a
                     href="/notifications"
                     onClick={() => setShowMobileMenu(false)}
