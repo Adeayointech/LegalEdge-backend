@@ -121,7 +121,7 @@ app.use(limiter);
 // Strict rate limiting for auth endpoints (brute-force protection)
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10,                   // 10 attempts per window
+  max: parseInt(process.env.AUTH_RATE_LIMIT_MAX || '20'),
   message: { error: 'Too many attempts, please try again later' },
   standardHeaders: true,
   legacyHeaders: false,
