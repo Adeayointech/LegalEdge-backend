@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { notificationAPI } from '../lib/notificationApi';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSocket } from '../hooks/useSocket';
 
 interface Notification {
   id: string;
@@ -22,31 +23,43 @@ export function NotificationBell() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
-  // Fetch notifications
+  // Fetch notifications once on mount (no polling — socket handles live updates)
   const { data: notifications } = useQuery({
     queryKey: ['notifications'],
     queryFn: async () => {
       const response = await notificationAPI.getNotifications(50);
       return response.data as Notification[];
     },
-    refetchInterval: 3 * 60_000, // Refetch every 3 minutes
+    staleTime: Infinity, // Don't auto-refetch — socket keeps it fresh
   });
 
   // Show only top 6 notifications in dropdown
   const displayNotifications = notifications?.slice(0, 6) || [];
   const hasMore = (notifications?.length || 0) > 6;
 
-  // Fetch unread count
+  // Fetch unread count once on mount (no polling)
   const { data: unreadData } = useQuery({
     queryKey: ['notifications', 'unread-count'],
     queryFn: async () => {
       const response = await notificationAPI.getUnreadCount();
       return response.data;
     },
-    refetchInterval: 3 * 60_000, // Refetch every 3 minutes
+    staleTime: Infinity,
   });
 
   const unreadCount = unreadData?.count || 0;
+
+  // Listen for real-time notifications via WebSocket
+  useSocket((newNotification) => {
+    // Prepend new notification to the list
+    queryClient.setQueryData(['notifications'], (old: Notification[] | undefined) => {
+      return [newNotification, ...(old || [])];
+    });
+    // Increment unread count
+    queryClient.setQueryData(['notifications', 'unread-count'], (old: any) => ({
+      count: (old?.count || 0) + 1,
+    }));
+  });
 
   // Mark as read mutation
   const markAsReadMutation = useMutation({

@@ -1,6 +1,7 @@
 import prisma from '../lib/prisma';
 import { NotificationType } from '@prisma/client';
 import { sendEmail } from '../utils/email';
+import { io } from '../index';
 
 interface CreateNotificationParams {
   userId: string;
@@ -34,6 +35,18 @@ export const createNotification = async (params: CreateNotificationParams) => {
         },
       },
     },
+  });
+
+  // Push to connected client instantly via WebSocket
+  io.to(`user:${userId}`).emit('notification', {
+    id: notification.id,
+    type: notification.type,
+    title: notification.title,
+    message: notification.message,
+    entityType: notification.entityType,
+    entityId: notification.entityId,
+    isRead: false,
+    createdAt: notification.createdAt,
   });
 
   // Send email notification if requested (non-blocking)

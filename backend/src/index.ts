@@ -3,12 +3,16 @@ import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
 import rateLimit from 'express-rate-limit';
+import { createServer } from 'http';
+import { Server as SocketIOServer } from 'socket.io';
+import jwt from 'jsonwebtoken';
 
 // Load environment variables
 dotenv.config();
 
 // Create Express app
 const app = express();
+const httpServer = createServer(app);
 
 // Trust proxy for Railway (behind reverse proxy)
 app.set('trust proxy', 1);
@@ -68,6 +72,42 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
+
+// Socket.IO setup (after allowedOrigins is defined)
+export const io = new SocketIOServer(httpServer, {
+  cors: {
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    credentials: true,
+  },
+});
+
+// Authenticate socket connections via JWT
+io.use((socket, next) => {
+  const token = socket.handshake.auth?.token;
+  if (!token) return next(new Error('Authentication required'));
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
+    socket.data.userId = decoded.userId;
+    next();
+  } catch {
+    next(new Error('Invalid token'));
+  }
+});
+
+io.on('connection', (socket) => {
+  const userId = socket.data.userId;
+  socket.join(`user:${userId}`);
+  console.log(`[SOCKET] User ${userId} connected`);
+  socket.on('disconnect', () => {
+    console.log(`[SOCKET] User ${userId} disconnected`);
+  });
+});
 
 // Global rate limiting
 const limiter = rateLimit({
@@ -187,7 +227,7 @@ async function startServer() {
     await prisma.$disconnect();
     
     // Start Express server - bind to 0.0.0.0 for Railway
-    app.listen(PORT, '0.0.0.0', () => {
+    httpServer.listen(PORT, '0.0.0.0', () => {
       console.log(`🚀 Server running on port ${PORT}`);
       console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
       console.log(`🌐 CORS allowed origins: ${allowedOrigins.join(', ')}`);
