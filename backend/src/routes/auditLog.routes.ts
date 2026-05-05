@@ -16,7 +16,7 @@ router.get('/stats', authenticate, getAuditLogStats);
 router.get(
   '/',
   authenticate,
-  authorize(UserRole.SUPER_ADMIN, UserRole.SENIOR_PARTNER, UserRole.PARTNER),
+  authorize(UserRole.PLATFORM_ADMIN, UserRole.SUPER_ADMIN, UserRole.SENIOR_PARTNER, UserRole.PARTNER),
   getAuditLogs
 );
 
@@ -24,7 +24,7 @@ router.get(
 router.get(
   '/:id',
   authenticate,
-  authorize(UserRole.SUPER_ADMIN, UserRole.SENIOR_PARTNER, UserRole.PARTNER),
+  authorize(UserRole.PLATFORM_ADMIN, UserRole.SUPER_ADMIN, UserRole.SENIOR_PARTNER, UserRole.PARTNER),
   getAuditLogById
 );
 
