@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+﻿import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from './store/authStore';
 import { firmAPI, api } from './lib/api';
 import { useEffect, useState, useRef } from 'react';
@@ -500,7 +500,7 @@ function HomePage() {
               Sign In
             </a>
           </div>
-          <p className="text-slate-500 mt-6">No credit card required • 30-day free trial • Cancel anytime</p>
+          <p className="text-slate-500 mt-6">No credit card required â€¢ 30-day free trial â€¢ Cancel anytime</p>
         </div>
       </div>
 
@@ -548,7 +548,7 @@ function HomePage() {
             </div>
           </div>
           <div className="border-t border-white/10 pt-8 text-center text-slate-500 text-sm">
-            © 2026 Lawravel. All rights reserved. Empowering legal excellence worldwide.
+            Â© 2026 Lawravel. All rights reserved. Empowering legal excellence worldwide.
           </div>
         </div>
       </footer>
@@ -561,18 +561,19 @@ function Layout({ children }: { children: React.ReactNode }) {
   const { user, clearAuth } = useAuthStore();
   const [firmName, setFirmName] = useState('Lawravel');
   const [showDropdown, setShowDropdown] = useState(false);
-  const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const location = useLocation();
-  
+
   useQuery({
     queryKey: ['firm-name'],
     queryFn: () => firmAPI.getDetails().then(res => { setFirmName(res.data.name); return res.data; }),
     enabled: !!user && user.role !== 'PLATFORM_ADMIN',
-    staleTime: 30 * 60 * 1000, // 30 minutes — firm name never changes mid-session
+    staleTime: 30 * 60 * 1000,
     retry: false,
   });
-  
+
   const handleLogout = () => {
     clearAuth();
     window.location.href = '/login';
@@ -583,7 +584,7 @@ function Layout({ children }: { children: React.ReactNode }) {
     const rect = buttonRef.current.getBoundingClientRect();
     return {
       top: `${rect.bottom + 8}px`,
-      right: `${window.innerWidth - rect.right}px`,
+      left: `${rect.left}px`,
     };
   };
 
@@ -591,331 +592,241 @@ function Layout({ children }: { children: React.ReactNode }) {
     return location.pathname === path || location.pathname.startsWith(path + '/');
   };
 
-  const getLinkClass = (path: string) => {
-    return isActive(path)
-      ? 'px-2.5 py-1.5 text-sm bg-amber-500/20 text-amber-400 rounded-lg transition-colors font-medium'
-      : 'px-2.5 py-1.5 text-sm text-slate-300 hover:bg-amber-500/20 hover:text-amber-400 rounded-lg transition-colors font-medium';
-  };
-  
+  const navLinks: { href: string; label: string; icon: React.ReactElement; badge?: React.ReactElement }[] = user?.role === 'PLATFORM_ADMIN'
+    ? [{ href: '/platform-admin', label: 'Platform Admin', icon: (
+        <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+        </svg>
+      ), badge: <OpenTicketBadge /> }]
+    : [
+        { href: '/dashboard', label: 'Dashboard', icon: (
+          <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+          </svg>
+        )},
+        { href: '/cases', label: 'Cases', icon: (
+          <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+          </svg>
+        )},
+        { href: '/calendar', label: 'Calendar', icon: (
+          <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+        )},
+        { href: '/branches', label: 'Branches', icon: (
+          <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+          </svg>
+        )},
+        { href: '/search', label: 'Search', icon: (
+          <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        )},
+        { href: '/analytics', label: 'Analytics', icon: (
+          <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          </svg>
+        )},
+        ...(user?.role && ['SUPER_ADMIN', 'SENIOR_PARTNER', 'PARTNER'].includes(user.role) ? [
+          { href: '/users', label: 'Users', icon: (
+            <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+          )},
+          { href: '/audit-logs', label: 'Audit Trail', icon: (
+            <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+          )},
+        ] : []),
+      ];
+
+  const SidebarContent = ({ mobile = false }: { mobile?: boolean }) => (
+    <div className="flex flex-col h-full">
+      {/* Logo */}
+      <div className={`flex items-center border-b border-white/10 ${collapsed && !mobile ? 'justify-center px-3 py-4' : 'gap-3 px-4 py-4'}`}>
+        <div className="bg-gradient-to-br from-amber-400 to-yellow-600 p-1.5 rounded-lg shadow-lg shrink-0">
+          <svg className="w-6 h-6 text-slate-900" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M3 6a3 3 0 013-3h10a1 1 0 01.8 1.6L14.25 8l2.55 3.4A1 1 0 0116 13H6a1 1 0 00-1 1v3a1 1 0 11-2 0V6z" clipRule="evenodd" />
+          </svg>
+        </div>
+        {(!collapsed || mobile) && (
+          <div className="overflow-hidden">
+            <div className="text-sm font-bold text-white leading-tight truncate">{firmName}</div>
+            <div className="text-xs text-slate-400">Legal Case Management</div>
+          </div>
+        )}
+      </div>
+
+      {/* Nav Links */}
+      <nav className="flex-1 px-2 py-4 space-y-0.5 overflow-y-auto">
+        {navLinks.map(link => {
+          const active = isActive(link.href);
+          return (
+            <a
+              key={link.href}
+              href={link.href}
+              onClick={() => mobile && setMobileSidebarOpen(false)}
+              title={collapsed && !mobile ? link.label : undefined}
+              className={`flex items-center gap-3 rounded-lg transition-all duration-150 group relative
+                ${collapsed && !mobile ? 'justify-center px-2 py-2.5' : 'px-3 py-2.5'}
+                ${active
+                  ? 'bg-amber-500/20 text-amber-400'
+                  : 'text-slate-300 hover:bg-slate-700/60 hover:text-white'
+                }`}
+            >
+              {link.icon}
+              {(!collapsed || mobile) && (
+                <span className="text-sm font-medium truncate">{link.label}</span>
+              )}
+              {('badge' in link) && (link as any).badge}
+              {/* Tooltip when collapsed */}
+              {collapsed && !mobile && (
+                <span className="absolute left-full ml-3 px-2 py-1 bg-slate-800 text-white text-xs rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap border border-white/10 z-50">
+                  {link.label}
+                </span>
+              )}
+            </a>
+          );
+        })}
+      </nav>
+
+      {/* Bottom: Branch selector + user */}
+      <div className="border-t border-white/10 px-2 py-3 space-y-2">
+        {user?.role !== 'PLATFORM_ADMIN' && (
+          <div className={`${collapsed && !mobile ? 'flex justify-center' : ''}`}>
+            <BranchSelector />
+          </div>
+        )}
+        {/* User row */}
+        <div className="relative">
+          <button
+            ref={buttonRef}
+            onClick={() => setShowDropdown(!showDropdown)}
+            className={`w-full flex items-center gap-2.5 px-2 py-2 rounded-lg hover:bg-slate-700/60 transition-colors
+              ${collapsed && !mobile ? 'justify-center' : ''}`}
+          >
+            <div className="w-7 h-7 rounded-full bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 font-bold text-xs shrink-0">
+              {user?.firstName?.[0]}{user?.lastName?.[0]}
+            </div>
+            {(!collapsed || mobile) && (
+              <div className="flex-1 text-left overflow-hidden">
+                <div className="text-xs font-semibold text-white truncate">{user?.firstName} {user?.lastName}</div>
+                <div className="text-xs text-amber-400 uppercase tracking-wide truncate">{user?.role?.replace(/_/g, ' ')}</div>
+              </div>
+            )}
+            {(!collapsed || mobile) && (
+              <svg className="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            )}
+          </button>
+          {showDropdown && createPortal(
+            <>
+              <div className="fixed inset-0 z-[9998]" onClick={() => setShowDropdown(false)} />
+              <div
+                className="fixed w-48 bg-gradient-to-br from-slate-800 to-slate-900 backdrop-blur-xl rounded-lg shadow-2xl border border-white/10 py-2 z-[9999]"
+                style={getDropdownPosition()}
+              >
+                <a href="/profile" className="block px-4 py-2 text-slate-300 hover:bg-amber-500/20 hover:text-amber-400 transition-colors text-sm">
+                  My Profile
+                </a>
+                {user?.role !== 'PLATFORM_ADMIN' && (
+                  <a href="/billing" className="block px-4 py-2 text-slate-300 hover:bg-amber-500/20 hover:text-amber-400 transition-colors text-sm">
+                    Billing
+                  </a>
+                )}
+                <button
+                  onClick={handleLogout}
+                  className="w-full text-left px-4 py-2 text-slate-300 hover:bg-amber-500/20 hover:text-amber-400 transition-colors text-sm"
+                >
+                  Logout
+                </button>
+              </div>
+            </>,
+            document.body
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
+    <div className="flex min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 overflow-x-hidden">
       {/* Background decoration */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 right-0 w-96 h-96 bg-amber-500/5 rounded-full blur-3xl"></div>
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl"></div>
       </div>
 
-      <nav className="relative z-10 bg-gradient-to-r from-slate-900/90 to-slate-800/90 backdrop-blur-xl shadow-lg border-b border-white/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-18 items-center">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <div className="bg-gradient-to-br from-amber-400 to-yellow-600 p-1.5 rounded-lg shadow-lg shrink-0">
-                  <svg className="w-6 h-6 text-slate-900" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M3 6a3 3 0 013-3h10a1 1 0 01.8 1.6L14.25 8l2.55 3.4A1 1 0 0116 13H6a1 1 0 00-1 1v3a1 1 0 11-2 0V6z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <div className="hidden sm:block">
-                  <h1 className="text-base font-bold text-white heading-font leading-tight">{firmName}</h1>
-                  <p className="text-xs text-slate-400 hidden lg:block">Legal Case Management</p>
-                </div>
-              </div>
-              <div className="hidden md:flex gap-0.5 ml-2">
-                {user?.role === 'PLATFORM_ADMIN' ? (
-                  <a href="/platform-admin" className={`${getLinkClass('/platform-admin')} flex items-center`}>
-                    Platform Admin<OpenTicketBadge />
-                  </a>
-                ) : (
-                  <>
-                    <a href="/dashboard" className={getLinkClass('/dashboard')}>Dashboard</a>
-                    <a href="/cases" className={getLinkClass('/cases')}>Cases</a>
-                    <a href="/calendar" className={getLinkClass('/calendar')}>Calendar</a>
-                    <a href="/branches" className={getLinkClass('/branches')}>Branches</a>
-                    <a href="/search" className={getLinkClass('/search')}>Search</a>
-                    <a href="/analytics" className={getLinkClass('/analytics')}>Analytics</a>
-                    {user?.role && ['SUPER_ADMIN', 'SENIOR_PARTNER', 'PARTNER'].includes(user.role) && (
-                      <a href="/users" className={getLinkClass('/users')}>Users</a>
-                    )}
-                    {user?.role && ['SUPER_ADMIN', 'SENIOR_PARTNER', 'PARTNER'].includes(user.role) && (
-                      <a href="/audit-logs" className={getLinkClass('/audit-logs')}>Audit Trail</a>
-                    )}
-                  </>
-                )}
-              </div>
-            </div>
-            <div className="flex items-center gap-2 sm:gap-3">
-              {user?.role !== 'PLATFORM_ADMIN' && <BranchSelector />}
-              <NotificationBell />
-              
-              {/* Mobile Menu Button */}
-              <button
-                onClick={() => setShowMobileMenu(!showMobileMenu)}
-                className="md:hidden p-2 text-slate-300 hover:bg-slate-800 rounded-lg transition-colors"
-              >
-                {showMobileMenu ? (
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                ) : (
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                  </svg>
-                )}
-              </button>
+      {/* Desktop Sidebar */}
+      <aside
+        className={`hidden md:flex flex-col fixed top-0 left-0 h-full bg-gradient-to-b from-slate-900/95 to-slate-800/95 backdrop-blur-xl border-r border-white/10 shadow-2xl z-40 transition-all duration-300
+          ${collapsed ? 'w-16' : 'w-60'}`}
+      >
+        {/* Collapse toggle */}
+        <button
+          onClick={() => setCollapsed(!collapsed)}
+          className="absolute -right-3 top-6 w-6 h-6 bg-slate-700 border border-white/10 rounded-full flex items-center justify-center text-slate-300 hover:text-white hover:bg-slate-600 transition-colors z-10 shadow-md"
+        >
+          <svg className={`w-3 h-3 transition-transform duration-300 ${collapsed ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <SidebarContent />
+      </aside>
 
-              <div className="relative hidden md:block">
-                <button 
-                  ref={buttonRef}
-                  onClick={() => setShowDropdown(!showDropdown)}
-                  className="relative flex items-center gap-2 px-3 py-2 text-white hover:bg-slate-800 rounded-lg transition-colors"
-                >
-                  <div className="text-right hidden lg:block">
-                    <div className="text-sm font-semibold text-white">
-                      {user?.firstName} {user?.lastName}
-                    </div>
-                    <div className="text-xs text-amber-400 uppercase tracking-wide">{user?.role?.replace('_', ' ')}</div>
-                  </div>
-                  <div className="w-8 h-8 rounded-full bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 font-bold text-sm lg:hidden">
-                    {user?.firstName?.[0]}{user?.lastName?.[0]}
-                  </div>
-                  <svg className="w-4 h-4 text-white hidden lg:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-                {showDropdown && createPortal(
-                  <>
-                    <div 
-                      className="fixed inset-0 z-[9998]" 
-                      onClick={() => setShowDropdown(false)}
-                    />
-                    <div 
-                      className="fixed w-48 bg-gradient-to-br from-slate-800 to-slate-900 backdrop-blur-xl rounded-lg shadow-2xl border border-white/10 py-2 z-[9999]"
-                      style={getDropdownPosition()}
-                    >
-                      <a 
-                        href="/profile" 
-                        className="block px-4 py-2 text-slate-300 hover:bg-amber-500/20 hover:text-amber-400 transition-colors"
-                      >
-                        My Profile
-                      </a>
-                      {user?.role !== 'PLATFORM_ADMIN' && (
-                        <a
-                          href="/billing"
-                          className="block px-4 py-2 text-slate-300 hover:bg-amber-500/20 hover:text-amber-400 transition-colors"
-                        >
-                          Billing
-                        </a>
-                      )}
-                      <button
-                        onClick={handleLogout}
-                        className="w-full text-left px-4 py-2 text-slate-300 hover:bg-amber-500/20 hover:text-amber-400 transition-colors"
-                      >
-                        Logout
-                      </button>
-                    </div>
-                  </>,
-                  document.body
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      {/* Mobile Menu Overlay */}
-      {showMobileMenu && (
+      {/* Mobile Sidebar Overlay */}
+      {mobileSidebarOpen && (
         <div className="fixed inset-0 z-50 md:hidden">
-          {/* Backdrop */}
-          <div 
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            onClick={() => setShowMobileMenu(false)}
-          />
-          
-          {/* Menu Panel */}
-          <div className="absolute top-0 right-0 bottom-0 w-80 bg-gradient-to-br from-slate-900 to-slate-800 shadow-2xl overflow-y-auto flex flex-col">
-            {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-white/10 flex-shrink-0">
-              <div className="flex items-center gap-3">
-                <div className="bg-gradient-to-br from-amber-400 to-yellow-600 p-2 rounded-lg">
-                  <svg className="w-6 h-6 text-slate-900" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M3 6a3 3 0 013-3h10a1 1 0 01.8 1.6L14.25 8l2.55 3.4A1 1 0 0116 13H6a1 1 0 00-1 1v3a1 1 0 11-2 0V6z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <span className="text-lg font-bold text-white">{firmName}</span>
-              </div>
-              <button
-                onClick={() => setShowMobileMenu(false)}
-                className="p-2 text-slate-400 hover:text-white transition-colors"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-
-            {/* User Info */}
-            <div className="p-4 border-b border-white/10 bg-gradient-to-r from-amber-500/10 to-transparent flex-shrink-0">
-              <div className="text-sm font-semibold text-white">
-                {user?.firstName} {user?.lastName}
-              </div>
-              <div className="text-xs text-amber-400 uppercase tracking-wide mt-1">
-                {user?.role?.replace('_', ' ')}
-              </div>
-            </div>
-
-            {/* Navigation Links */}
-            <div className="p-4 space-y-1 flex-1 overflow-y-auto">
-              {user?.role === 'PLATFORM_ADMIN' ? (
-                <a
-                  href="/platform-admin"
-                  onClick={() => setShowMobileMenu(false)}
-                  className={`flex items-center px-4 py-3 rounded-lg transition-colors ${
-                    isActive('/platform-admin')
-                      ? 'bg-amber-500/20 text-amber-400'
-                      : 'text-slate-300 hover:bg-slate-700/50 hover:text-white'
-                  }`}
-                >
-                  Platform Admin<OpenTicketBadge />
-                </a>
-              ) : (
-                <>
-                  <a
-                    href="/dashboard"
-                    onClick={() => setShowMobileMenu(false)}
-                    className={`block px-4 py-3 rounded-lg transition-colors ${
-                      isActive('/dashboard')
-                        ? 'bg-amber-500/20 text-amber-400'
-                        : 'text-slate-300 hover:bg-slate-700/50 hover:text-white'
-                    }`}
-                  >
-                    Dashboard
-                  </a>
-                  <a
-                    href="/cases"
-                    onClick={() => setShowMobileMenu(false)}
-                    className={`block px-4 py-3 rounded-lg transition-colors ${
-                      isActive('/cases')
-                        ? 'bg-amber-500/20 text-amber-400'
-                        : 'text-slate-300 hover:bg-slate-700/50 hover:text-white'
-                    }`}
-                  >
-                    Cases
-                  </a>
-                  <a
-                    href="/calendar"
-                    onClick={() => setShowMobileMenu(false)}
-                    className={`block px-4 py-3 rounded-lg transition-colors ${
-                      isActive('/calendar')
-                        ? 'bg-amber-500/20 text-amber-400'
-                        : 'text-slate-300 hover:bg-slate-700/50 hover:text-white'
-                    }`}
-                  >
-                    Calendar
-                  </a>
-                  <a
-                    href="/branches"
-                    onClick={() => setShowMobileMenu(false)}
-                    className={`block px-4 py-3 rounded-lg transition-colors ${
-                      isActive('/branches')
-                        ? 'bg-amber-500/20 text-amber-400'
-                        : 'text-slate-300 hover:bg-slate-700/50 hover:text-white'
-                    }`}
-                  >
-                    Branches
-                  </a>
-                  <a
-                    href="/search"
-                    onClick={() => setShowMobileMenu(false)}
-                    className={`block px-4 py-3 rounded-lg transition-colors ${
-                      isActive('/search')
-                        ? 'bg-amber-500/20 text-amber-400'
-                        : 'text-slate-300 hover:bg-slate-700/50 hover:text-white'
-                    }`}
-                  >
-                    Search
-                  </a>
-                  <a
-                    href="/analytics"
-                    onClick={() => setShowMobileMenu(false)}
-                    className={`block px-4 py-3 rounded-lg transition-colors ${
-                      isActive('/analytics')
-                        ? 'bg-amber-500/20 text-amber-400'
-                        : 'text-slate-300 hover:bg-slate-700/50 hover:text-white'
-                    }`}
-                  >
-                    Analytics
-                  </a>
-                  {user?.role && ['SUPER_ADMIN', 'SENIOR_PARTNER', 'PARTNER'].includes(user.role) && (
-                    <a
-                      href="/users"
-                      onClick={() => setShowMobileMenu(false)}
-                      className={`block px-4 py-3 rounded-lg transition-colors ${
-                        isActive('/users')
-                          ? 'bg-amber-500/20 text-amber-400'
-                          : 'text-slate-300 hover:bg-slate-700/50 hover:text-white'
-                      }`}
-                    >
-                      Users
-                    </a>
-                  )}
-                  {user?.role && ['SUPER_ADMIN', 'SENIOR_PARTNER', 'PARTNER'].includes(user.role) && (
-                    <a
-                      href="/audit-logs"
-                      onClick={() => setShowMobileMenu(false)}
-                      className={`block px-4 py-3 rounded-lg transition-colors ${
-                        isActive('/audit-logs')
-                          ? 'bg-amber-500/20 text-amber-400'
-                          : 'text-slate-300 hover:bg-slate-700/50 hover:text-white'
-                      }`}
-                    >
-                      Audit Trail
-                    </a>
-                  )}
-                  <a
-                    href="/notifications"
-                    onClick={() => setShowMobileMenu(false)}
-                    className={`block px-4 py-3 rounded-lg transition-colors ${
-                      isActive('/notifications')
-                        ? 'bg-amber-500/20 text-amber-400'
-                        : 'text-slate-300 hover:bg-slate-700/50 hover:text-white'
-                    }`}
-                  >
-                    Notifications
-                  </a>
-                </>
-              )}
-            </div>
-
-            {/* Bottom Actions */}
-            <div className="p-4 border-t border-white/10 bg-gradient-to-t from-slate-900 to-transparent space-y-2 flex-shrink-0">
-              <a
-                href="/profile"
-                onClick={() => setShowMobileMenu(false)}
-                className="block w-full px-4 py-3 text-center text-slate-300 hover:bg-slate-700/50 hover:text-white rounded-lg transition-colors"
-              >
-                My Profile
-              </a>
-              <button
-                onClick={() => {
-                  setShowMobileMenu(false);
-                  handleLogout();
-                }}
-                className="block w-full px-4 py-3 text-center text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded-lg transition-colors"
-              >
-                Logout
-              </button>
-            </div>
-          </div>
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setMobileSidebarOpen(false)} />
+          <aside className="absolute top-0 left-0 bottom-0 w-72 bg-gradient-to-b from-slate-900 to-slate-800 shadow-2xl flex flex-col">
+            <SidebarContent mobile />
+          </aside>
         </div>
       )}
-      
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <SubscriptionBanner />
-        {children}
+
+      {/* Mobile Top Bar */}
+      <div className="md:hidden fixed top-0 left-0 right-0 z-30 h-14 bg-gradient-to-r from-slate-900/95 to-slate-800/95 backdrop-blur-xl border-b border-white/10 flex items-center justify-between px-4">
+        <button
+          onClick={() => setMobileSidebarOpen(true)}
+          className="p-1.5 text-slate-300 hover:text-white hover:bg-slate-700/60 rounded-lg transition-colors"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+        <div className="flex items-center gap-2">
+          <div className="bg-gradient-to-br from-amber-400 to-yellow-600 p-1 rounded-md">
+            <svg className="w-4 h-4 text-slate-900" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M3 6a3 3 0 013-3h10a1 1 0 01.8 1.6L14.25 8l2.55 3.4A1 1 0 0116 13H6a1 1 0 00-1 1v3a1 1 0 11-2 0V6z" clipRule="evenodd" />
+            </svg>
+          </div>
+          <span className="text-sm font-bold text-white">{firmName}</span>
+        </div>
+        <NotificationBell />
       </div>
+
+      {/* Main Content */}
+      <main
+        className={`relative z-10 flex-1 transition-all duration-300 pt-14 md:pt-0
+          ${collapsed ? 'md:ml-16' : 'md:ml-60'}`}
+      >
+        <div className="px-4 sm:px-6 lg:px-8 py-8">
+          <SubscriptionBanner />
+          {children}
+        </div>
+      </main>
     </div>
   );
 }
+
+
+
+
+
 
 // Dashboard page
 function DashboardPage() {
@@ -974,7 +885,7 @@ function DashboardPage() {
             {stats.loading ? '...' : stats.activeCases}
           </p>
           <a href="/cases" className="text-sm text-amber-400 hover:text-amber-300 font-medium mt-3 inline-flex items-center gap-1">
-            View all cases →
+            View all cases â†’
           </a>
         </div>
         <div className="p-6 bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-sm rounded-xl shadow-lg border border-white/10 hover:border-amber-500/50 transition-all">
