@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useQuery } from '@tanstack/react-query';
 import { branchAPI } from '../lib/api';
 import { Building2, ChevronDown } from 'lucide-react';
@@ -6,11 +7,13 @@ import { Building2, ChevronDown } from 'lucide-react';
 export function BranchSelector() {
   const [selectedBranchId, setSelectedBranchId] = useState<string>('all');
   const [isOpen, setIsOpen] = useState(false);
+  const [dropdownPos, setDropdownPos] = useState({ top: 0, right: 0 });
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   const { data: branches } = useQuery({
     queryKey: ['branches'],
     queryFn: () => branchAPI.getAll({ isActive: true }),
-    staleTime: 10 * 60 * 1000, // 10 minutes — branches rarely change
+    staleTime: 10 * 60 * 1000,
   });
 
   // Load saved branch preference
@@ -21,12 +24,22 @@ export function BranchSelector() {
     }
   }, []);
 
+  const handleToggle = () => {
+    if (!isOpen && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setDropdownPos({
+        top: rect.bottom + 8,
+        right: window.innerWidth - rect.right,
+      });
+    }
+    setIsOpen(!isOpen);
+  };
+
   // Save branch preference
   const handleBranchChange = (branchId: string) => {
     setSelectedBranchId(branchId);
     localStorage.setItem('selectedBranchId', branchId);
     setIsOpen(false);
-    // Trigger a custom event for other components to listen to
     window.dispatchEvent(new CustomEvent('branchChanged', { detail: { branchId } }));
   };
 
@@ -35,13 +48,14 @@ export function BranchSelector() {
   const displayName = selectedBranch ? selectedBranch.name : 'All Branches';
 
   if (branchList.length === 0) {
-    return null; // Don't show selector if no branches
+    return null;
   }
 
   return (
     <div className="relative">
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        ref={buttonRef}
+        onClick={handleToggle}
         className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs text-slate-300 bg-slate-700/50 border border-white/10 rounded-lg hover:bg-slate-700 hover:text-white transition-colors focus:outline-none max-w-[140px]"
       >
         <Building2 className="w-3.5 h-3.5 shrink-0" />
@@ -49,16 +63,19 @@ export function BranchSelector() {
         <ChevronDown className="w-3 h-3 shrink-0 opacity-60" />
       </button>
 
-      {isOpen && (
+      {isOpen && createPortal(
         <>
-          {/* Overlay */}
+          {/* Overlay — closes dropdown on outside click */}
           <div
-            className="fixed inset-0 z-[9998]"
+            className="fixed inset-0"
+            style={{ zIndex: 9998 }}
             onClick={() => setIsOpen(false)}
           />
-
-          {/* Dropdown */}
-          <div className="absolute right-0 mt-2 w-64 bg-white border border-gray-200 rounded-md shadow-lg z-[9999]">
+          {/* Dropdown rendered at body level to escape nav stacking context */}
+          <div
+            className="fixed w-64 bg-white border border-gray-200 rounded-md shadow-xl"
+            style={{ top: dropdownPos.top, right: dropdownPos.right, zIndex: 9999 }}
+          >
             <div className="py-1">
               <button
                 onClick={() => handleBranchChange('all')}
@@ -87,7 +104,8 @@ export function BranchSelector() {
               ))}
             </div>
           </div>
-        </>
+        </>,
+        document.body
       )}
     </div>
   );
