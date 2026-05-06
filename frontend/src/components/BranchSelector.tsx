@@ -53,12 +53,12 @@ export function BranchSelector() {
         <>
           {/* Overlay */}
           <div
-            className="fixed inset-0 z-10"
+            className="fixed inset-0 z-[9998]"
             onClick={() => setIsOpen(false)}
           />
 
           {/* Dropdown */}
-          <div className="absolute right-0 mt-2 w-64 bg-white border border-gray-200 rounded-md shadow-lg z-20">
+          <div className="absolute right-0 mt-2 w-64 bg-white border border-gray-200 rounded-md shadow-lg z-[9999]">
             <div className="py-1">
               <button
                 onClick={() => handleBranchChange('all')}
