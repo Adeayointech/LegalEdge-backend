@@ -10,6 +10,7 @@ import { CreateCase } from './components/CreateCase';
 import { CaseDetails } from './components/CaseDetails';
 import { CaseDetailsDocuments } from './components/CaseDetailsDocuments';
 import { AuditLogList } from './components/AuditLogList';
+import { SupportPage } from './pages/Support';
 import { BranchList } from './components/BranchList';
 import { BranchSelector } from './components/BranchSelector';
 import { NotificationBell } from './components/NotificationBell';
@@ -174,6 +175,26 @@ function App() {
             <ProtectedRoute>
               <Layout>
                 <BillingPage />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/support"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <SupportPage />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/support"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <SupportPage />
               </Layout>
             </ProtectedRoute>
           }
@@ -740,6 +761,25 @@ function Layout({ children }: { children: React.ReactNode }) {
             {(!collapsed || mobile) && <span className="text-sm font-medium">Billing</span>}
             {collapsed && !mobile && (
               <span className="absolute left-full ml-3 px-2 py-1 bg-slate-800 text-white text-xs rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap border border-white/10 z-50">Billing</span>
+            )}
+          </a>
+        )}
+
+        {/* Support */}
+        {user?.role !== 'PLATFORM_ADMIN' && (
+          <a
+            href="/support"
+            onClick={() => mobile && setMobileSidebarOpen(false)}
+            className={`flex items-center gap-3 rounded-lg transition-all duration-150 group relative
+              ${collapsed && !mobile ? 'justify-center px-2 py-2.5' : 'px-3 py-2'}
+              ${isActive('/support') ? 'bg-amber-500/20 text-amber-400' : 'text-slate-300 hover:bg-slate-700/60 hover:text-white'}`}
+          >
+            <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636a9 9 0 11-12.728 0M12 9v4m0 4h.01" />
+            </svg>
+            {(!collapsed || mobile) && <span className="text-sm font-medium">Support</span>}
+            {collapsed && !mobile && (
+              <span className="absolute left-full ml-3 px-2 py-1 bg-slate-800 text-white text-xs rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap border border-white/10 z-50">Support</span>
             )}
           </a>
         )}
