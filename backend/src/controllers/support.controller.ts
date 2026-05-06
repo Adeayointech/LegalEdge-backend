@@ -437,7 +437,8 @@ export const addUserReply = async (req: AuthRequest, res: Response) => {
   }
 };
 
-// Get all firms for platform adminexport const getAllFirms = async (req: AuthRequest, res: Response) => {
+// Get all firms for platform admin
+export const getAllFirms = async (req: AuthRequest, res: Response) => {
   try {
     if (!req.user || req.user.role !== 'PLATFORM_ADMIN') {
       return res.status(403).json({ error: 'Access denied. Platform Admin only.' });

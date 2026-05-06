@@ -140,7 +140,7 @@ export function SupportPage() {
               onChange={e => setMessage(e.target.value)}
               required
               rows={4}
-              placeholder="Describe your issue in detailâ€¦"
+              placeholder="Describe your issue in detail…"
               className="w-full px-3 py-2 bg-slate-700/60 border border-white/10 rounded-lg text-white text-sm placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50 resize-none"
             />
           </div>
@@ -165,7 +165,7 @@ export function SupportPage() {
               disabled={createMutation.isPending}
               className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-900 font-semibold rounded-lg transition-colors text-sm disabled:opacity-50"
             >
-              {createMutation.isPending ? 'Submittingâ€¦' : 'Submit Ticket'}
+              {createMutation.isPending ? 'Submitting…' : 'Submit Ticket'}
             </button>
             <button
               type="button"
@@ -183,7 +183,7 @@ export function SupportPage() {
 
       {/* Tickets list */}
       {isLoading ? (
-        <div className="text-slate-400 text-sm text-center py-10">Loading ticketsâ€¦</div>
+        <div className="text-slate-400 text-sm text-center py-10">Loading tickets…</div>
       ) : tickets.length === 0 ? (
         <div className="bg-slate-800/40 border border-white/10 rounded-xl p-10 text-center">
           <svg className="w-10 h-10 text-slate-600 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -256,7 +256,7 @@ export function SupportPage() {
                     </div>
                   )}
 
-                  {/* Reply box â€” only shown when there's an admin response and ticket is active */}
+                  {/* Reply box — only shown when there's an admin response and ticket is active */}
                   {ticket.response && canReply(ticket.status) && !ticket.userReply && (
                     showReplyFor === ticket.id ? (
                       <div className="space-y-2">
@@ -264,7 +264,7 @@ export function SupportPage() {
                           value={replyText[ticket.id] || ''}
                           onChange={e => setReplyText(prev => ({ ...prev, [ticket.id]: e.target.value }))}
                           rows={3}
-                          placeholder="Type your replyâ€¦"
+                          placeholder="Type your reply…"
                           className="w-full px-3 py-2 bg-slate-700/60 border border-white/10 rounded-lg text-white text-sm placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 resize-none"
                         />
                         <div className="flex gap-2">
@@ -273,7 +273,7 @@ export function SupportPage() {
                             disabled={replyMutation.isPending || !replyText[ticket.id]?.trim()}
                             className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-lg transition-colors disabled:opacity-50"
                           >
-                            {replyMutation.isPending ? 'Sendingâ€¦' : 'Send Reply'}
+                            {replyMutation.isPending ? 'Sending…' : 'Send Reply'}
                           </button>
                           <button
                             onClick={() => setShowReplyFor(null)}
@@ -301,7 +301,7 @@ export function SupportPage() {
 
                   {/* Closed/resolved note */}
                   {ticket.response && !canReply(ticket.status) && (
-                    <p className="text-xs text-slate-500 italic">This ticket is {ticket.status.toLowerCase()} â€” replies are disabled.</p>
+                    <p className="text-xs text-slate-500 italic">This ticket is {ticket.status.toLowerCase()} — replies are disabled.</p>
                   )}
 
                   {ticket.respondedAt && ticket.status === 'RESOLVED' && (

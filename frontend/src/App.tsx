@@ -541,7 +541,7 @@ function HomePage() {
               Sign In
             </a>
           </div>
-          <p className="text-slate-500 mt-6">No credit card required â€¢ 30-day free trial â€¢ Cancel anytime</p>
+          <p className="text-slate-500 mt-6">No credit card required • 30-day free trial • Cancel anytime</p>
         </div>
       </div>
 
