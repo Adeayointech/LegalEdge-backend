@@ -960,7 +960,7 @@ function DashboardPage() {
             {stats.loading ? '...' : stats.activeCases}
           </p>
           <a href="/cases" className="text-sm text-amber-400 hover:text-amber-300 font-medium mt-3 inline-flex items-center gap-1">
-            View all cases â†’
+            View all cases →
           </a>
         </div>
         <div className="p-6 bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-sm rounded-xl shadow-lg border border-white/10 hover:border-amber-500/50 transition-all">
