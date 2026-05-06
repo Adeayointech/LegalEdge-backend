@@ -82,9 +82,13 @@ export function NotificationBell() {
   const getDropdownPosition = () => {
     if (!buttonRef.current) return {};
     const rect = buttonRef.current.getBoundingClientRect();
+    const dropdownWidth = 384; // w-96
+    // Prefer opening to the right of the button; clamp so it stays on screen
+    const idealLeft = rect.left;
+    const clampedLeft = Math.max(8, Math.min(idealLeft, window.innerWidth - dropdownWidth - 8));
     return {
       top: `${rect.bottom + 8}px`,
-      right: `${window.innerWidth - rect.right}px`,
+      left: `${clampedLeft}px`,
     };
   };
 

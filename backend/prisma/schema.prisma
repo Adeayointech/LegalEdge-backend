@@ -557,7 +557,11 @@ model SupportTicket {
   response    String?           @db.Text
   respondedAt DateTime?
   respondedBy String?
-  
+
+  // Follow-up reply from the user
+  userReply      String?        @db.Text
+  userRepliedAt  DateTime?
+
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
   

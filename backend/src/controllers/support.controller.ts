@@ -371,8 +371,73 @@ export const updateSupportTicketStatus = async (req: AuthRequest, res: Response)
   }
 };
 
-// Get all firms for platform admin
-export const getAllFirms = async (req: AuthRequest, res: Response) => {
+// User reply to admin response
+export const addUserReply = async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    const { ticketId } = req.params;
+    const { message } = req.body;
+
+    if (!message || !message.trim()) {
+      return res.status(400).json({ error: 'Reply message is required' });
+    }
+
+    const ticket = await prisma.supportTicket.findUnique({
+      where: { id: ticketId },
+      include: {
+        user: { select: { id: true, firstName: true, lastName: true, email: true } },
+      },
+    });
+
+    if (!ticket) {
+      return res.status(404).json({ error: 'Ticket not found' });
+    }
+
+    if (ticket.userId !== req.user.userId) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    if (ticket.status === 'RESOLVED' || ticket.status === 'CLOSED') {
+      return res.status(400).json({ error: 'Cannot reply to a resolved or closed ticket' });
+    }
+
+    const updated = await prisma.supportTicket.update({
+      where: { id: ticketId },
+      data: {
+        userReply: message.trim(),
+        userRepliedAt: new Date(),
+      },
+    });
+
+    // Notify platform admins of the user reply
+    const platformAdmins = await prisma.user.findMany({
+      where: { role: 'PLATFORM_ADMIN', isActive: true },
+      select: { id: true },
+    });
+
+    for (const admin of platformAdmins) {
+      await createNotification({
+        userId: admin.id,
+        type: NotificationType.SUPPORT_TICKET,
+        title: 'User Replied to Support Ticket',
+        message: `${ticket.user.firstName} ${ticket.user.lastName} replied to: "${ticket.subject}"`,
+        entityType: 'SupportTicket',
+        entityId: ticket.id,
+        sendEmail: false,
+      });
+    }
+
+    res.json(updated);
+  } catch (error) {
+    console.error('Add user reply error:', error);
+    res.status(500).json({ error: 'Failed to add reply' });
+  }
+};
+
+// Get all firms for platform adminexport const getAllFirms = async (req: AuthRequest, res: Response) => {
   try {
     if (!req.user || req.user.role !== 'PLATFORM_ADMIN') {
       return res.status(403).json({ error: 'Access denied. Platform Admin only.' });

@@ -255,7 +255,7 @@ function UnreadSupportBadge({ dot = false }: { dot?: boolean }) {
   });
   const tickets: any[] = data?.tickets || [];
   const seenIds: string[] = JSON.parse(localStorage.getItem('seenSupportReplies') || '[]');
-  const unread = tickets.filter(t => t.adminResponse && !seenIds.includes(t.id)).length;
+  const unread = tickets.filter(t => t.response && !seenIds.includes(t.id)).length;
   if (unread === 0) return null;
   if (dot) {
     return <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-amber-500 border-2 border-slate-900" />;
