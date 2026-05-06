@@ -42,11 +42,11 @@ export function BranchSelector() {
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs text-slate-300 bg-slate-700/50 border border-white/10 rounded-lg hover:bg-slate-700 hover:text-white transition-colors focus:outline-none max-w-[140px]"
       >
-        <Building2 className="w-4 h-4" />
-        <span>{displayName}</span>
-        <ChevronDown className="w-4 h-4" />
+        <Building2 className="w-3.5 h-3.5 shrink-0" />
+        <span className="truncate">{displayName}</span>
+        <ChevronDown className="w-3 h-3 shrink-0 opacity-60" />
       </button>
 
       {isOpen && (
