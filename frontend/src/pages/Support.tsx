@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
 
@@ -45,6 +45,18 @@ export function SupportPage() {
   });
 
   const tickets: Ticket[] = data?.tickets || [];
+
+  // When user visits Support, mark all tickets with admin responses as "seen"
+  useEffect(() => {
+    if (tickets.length === 0) return;
+    const respondedIds = tickets.filter(t => t.adminResponse).map(t => t.id);
+    if (respondedIds.length === 0) return;
+    const current: string[] = JSON.parse(localStorage.getItem('seenSupportReplies') || '[]');
+    const updated = [...new Set([...current, ...respondedIds])];
+    localStorage.setItem('seenSupportReplies', JSON.stringify(updated));
+    // Invalidate so the sidebar badge re-computes
+    queryClient.invalidateQueries({ queryKey: ['my-tickets'] });
+  }, [tickets.length]);
 
   const createMutation = useMutation({
     mutationFn: () => api.post('/support', { subject, message, priority }),

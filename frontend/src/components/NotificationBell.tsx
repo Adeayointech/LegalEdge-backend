@@ -117,8 +117,7 @@ export function NotificationBell() {
           navigate('/cases');
           break;
         case 'SupportTicket':
-          // Deep link to specific ticket on profile page
-          navigate('/profile', { state: { scrollToTicket: notification.entityId } });
+          navigate('/support');
           break;
         case 'User':
           navigate('/users');

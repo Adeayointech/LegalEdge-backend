@@ -1,10 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '../store/authStore';
-import { useLocation } from 'react-router-dom';
 import { api } from '../lib/api';
-import { User, Mail, Phone, Building, MapPin, Calendar, Shield, Key, Eye, EyeOff, MessageSquare, Send } from 'lucide-react';
-import { SupportTicketList } from './SupportTicketList';
+import { User, Mail, Phone, Building, MapPin, Calendar, Shield, Key, Eye, EyeOff } from 'lucide-react';
 
 interface UserProfile {
   id: string;
@@ -52,24 +50,13 @@ const roleDisplayNames: Record<string, string> = {
 
 export function Profile() {
   const queryClient = useQueryClient();
-  const currentUser = useAuthStore((state) => state.user);
   const setAuth = useAuthStore((state) => state.setAuth);
-  const location = useLocation();
-  const ticketRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
-
   const [isEditing, setIsEditing] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
-  const [showSupportModal, setShowSupportModal] = useState(false);
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
     phone: '',
-  });
-
-  const [supportData, setSupportData] = useState({
-    subject: '',
-    message: '',
-    priority: 'MEDIUM',
   });
 
   const [passwordData, setPasswordData] = useState({
@@ -91,41 +78,6 @@ export function Profile() {
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
-
-  // Fetch user's support tickets
-  const { data: ticketsData } = useQuery({
-    queryKey: ['support-tickets'],
-    queryFn: async () => {
-      const response = await api.get('/support/my-tickets');
-      return response.data;
-    },
-  });
-
-  const tickets = ticketsData?.tickets || [];
-
-  // Handle deep linking to specific ticket
-  useEffect(() => {
-    const state = location.state as { scrollToTicket?: string };
-    const ticketId = state?.scrollToTicket;
-    if (ticketId && ticketRefs.current[ticketId]) {
-      // Wait a bit for render to complete
-      setTimeout(() => {
-        const element = ticketRefs.current[ticketId];
-        if (element) {
-          element.scrollIntoView({
-            behavior: 'smooth',
-            block: 'center',
-          });
-          // Highlight the ticket briefly
-          element.style.transition = 'box-shadow 0.3s';
-          element.style.boxShadow = '0 0 0 3px rgb(251 191 36 / 50%)';
-          setTimeout(() => {
-            element.style.boxShadow = '';
-          }, 2000);
-        }
-      }, 100);
-    }
-  }, [location.state, tickets]);
 
   // Update profile mutation
   const updateProfileMutation = useMutation({
@@ -210,35 +162,6 @@ export function Profile() {
       newPassword: passwordData.newPassword,
     });
   };
-
-  const handleSubmitSupport = () => {
-    if (!supportData.subject.trim() || !supportData.message.trim()) {
-      alert('Please fill in subject and message');
-      return;
-    }
-
-    submitSupportMutation.mutate(supportData);
-  };
-
-  const submitSupportMutation = useMutation({
-    mutationFn: async (data: { subject: string; message: string; priority: string }) => {
-      const response = await api.post('/support', data);
-      return response.data;
-    },
-    onSuccess: () => {
-      alert('Support ticket submitted successfully! We will get back to you soon.');
-      queryClient.invalidateQueries({ queryKey: ['support-tickets'] });
-      setShowSupportModal(false);
-      setSupportData({
-        subject: '',
-        message: '',
-        priority: 'MEDIUM',
-      });
-    },
-    onError: (error: any) => {
-      alert(error.response?.data?.error || 'Failed to submit support ticket');
-    },
-  });
 
   if (isLoading) {
     return (
@@ -525,113 +448,6 @@ export function Profile() {
           </div>
         </div>
       </div>
-
-      {/* Contact Support Section */}
-      <div className="bg-white rounded-lg shadow">
-        <div className="p-6 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-            <MessageSquare size={20} className="text-blue-600" />
-            Contact Support
-          </h2>
-        </div>
-        <div className="p-6">
-          <p className="text-gray-600 mb-4">
-            Have a question or issue with your account? Our support team is here to help.
-          </p>
-          <button
-            onClick={() => setShowSupportModal(true)}
-            className="px-4 py-2 bg-blue-900 text-white rounded-md hover:bg-blue-800 flex items-center gap-2"
-          >
-            <Send size={16} />
-            Submit Support Request
-          </button>
-        </div>
-      </div>
-
-      {/* My Support Tickets Section */}
-      <SupportTicketList tickets={tickets} ticketRefs={ticketRefs} />
-
-      {/* Support Modal */}
-      {showSupportModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-lg w-full max-h-[90vh] flex flex-col">
-            <div className="flex items-center justify-between p-6 border-b border-gray-200 flex-shrink-0">
-              <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                <MessageSquare className="w-5 h-5 text-blue-600" />
-                Contact Support
-              </h3>
-              <button
-                onClick={() => setShowSupportModal(false)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <span className="text-2xl">&times;</span>
-              </button>
-            </div>
-
-            <div className="p-6 space-y-4 overflow-y-auto flex-1">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Subject <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={supportData.subject}
-                  onChange={(e) => setSupportData({ ...supportData, subject: e.target.value })}
-                  placeholder="Brief description of your issue"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Priority
-                </label>
-                <select
-                  value={supportData.priority}
-                  onChange={(e) => setSupportData({ ...supportData, priority: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="LOW">Low</option>
-                  <option value="MEDIUM">Medium</option>
-                  <option value="HIGH">High</option>
-                  <option value="URGENT">Urgent</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Message <span className="text-red-500">*</span>
-                </label>
-                <textarea
-                  value={supportData.message}
-                  onChange={(e) => setSupportData({ ...supportData, message: e.target.value })}
-                  placeholder="Please describe your issue in detail..."
-                  rows={6}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-            </div>
-
-            <div className="flex gap-3 px-6 py-4 bg-gray-50 rounded-b-lg flex-shrink-0 border-t border-gray-200">
-              <button
-                onClick={() => setShowSupportModal(false)}
-                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-100"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSubmitSupport}
-                disabled={submitSupportMutation.isPending}
-                className="flex-1 px-4 py-2 bg-blue-900 text-white rounded-md hover:bg-blue-800 disabled:opacity-50 flex items-center justify-center gap-2"
-              >
-                <Send size={16} />
-                {submitSupportMutation.isPending ? 'Submitting...' : 'Submit'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Change Password Modal */}
       {showPasswordModal && (

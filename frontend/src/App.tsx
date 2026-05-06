@@ -246,6 +246,27 @@ function PlatformAdminRoute({ children }: { children: React.ReactNode }) {
 }
 
 // Open ticket badge for platform admin nav
+// Badge showing count of support tickets with unread admin responses (for sidebar)
+function UnreadSupportBadge({ dot = false }: { dot?: boolean }) {
+  const { data } = useQuery({
+    queryKey: ['my-tickets'],
+    queryFn: () => api.get('/support/my-tickets').then(r => r.data),
+    staleTime: 2 * 60 * 1000,
+  });
+  const tickets: any[] = data?.tickets || [];
+  const seenIds: string[] = JSON.parse(localStorage.getItem('seenSupportReplies') || '[]');
+  const unread = tickets.filter(t => t.adminResponse && !seenIds.includes(t.id)).length;
+  if (unread === 0) return null;
+  if (dot) {
+    return <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-amber-500 border-2 border-slate-900" />;
+  }
+  return (
+    <span className="ml-auto inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold bg-amber-500 text-slate-900">
+      {unread > 9 ? '9+' : unread}
+    </span>
+  );
+}
+
 function OpenTicketBadge() {
   const { data } = useQuery({
     queryKey: ['platform-stats-badge'],
@@ -654,19 +675,20 @@ function Layout({ children }: { children: React.ReactNode }) {
 
   const SidebarContent = ({ mobile = false }: { mobile?: boolean }) => (
     <div className="flex flex-col h-full">
-      {/* Logo */}
-      <div className={`flex items-center border-b border-white/10 ${collapsed && !mobile ? 'justify-center px-3 py-4' : 'gap-3 px-4 py-4'}`}>
+      {/* Logo + Notification Bell */}
+      <div className={`flex items-center border-b border-white/10 ${collapsed && !mobile ? 'flex-col gap-2 px-3 py-3' : 'gap-3 px-4 py-4'}`}>
         <div className="bg-gradient-to-br from-amber-400 to-yellow-600 p-1.5 rounded-lg shadow-lg shrink-0">
           <svg className="w-6 h-6 text-slate-900" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M3 6a3 3 0 013-3h10a1 1 0 01.8 1.6L14.25 8l2.55 3.4A1 1 0 0116 13H6a1 1 0 00-1 1v3a1 1 0 11-2 0V6z" clipRule="evenodd" />
           </svg>
         </div>
         {(!collapsed || mobile) && (
-          <div className="overflow-hidden">
+          <div className="flex-1 overflow-hidden">
             <div className="text-sm font-bold text-white leading-tight truncate">{firmName}</div>
             <div className="text-xs text-slate-400">Legal Case Management</div>
           </div>
         )}
+        <NotificationBell />
       </div>
 
       {/* Nav Links */}
@@ -774,10 +796,14 @@ function Layout({ children }: { children: React.ReactNode }) {
               ${collapsed && !mobile ? 'justify-center px-2 py-2.5' : 'px-3 py-2'}
               ${isActive('/support') ? 'bg-amber-500/20 text-amber-400' : 'text-slate-300 hover:bg-slate-700/60 hover:text-white'}`}
           >
-            <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636a9 9 0 11-12.728 0M12 9v4m0 4h.01" />
-            </svg>
+            <div className="relative shrink-0">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636a9 9 0 11-12.728 0M12 9v4m0 4h.01" />
+              </svg>
+              {collapsed && !mobile && <UnreadSupportBadge dot />}
+            </div>
             {(!collapsed || mobile) && <span className="text-sm font-medium">Support</span>}
+            {(!collapsed || mobile) && <UnreadSupportBadge />}
             {collapsed && !mobile && (
               <span className="absolute left-full ml-3 px-2 py-1 bg-slate-800 text-white text-xs rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap border border-white/10 z-50">Support</span>
             )}
