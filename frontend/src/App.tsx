@@ -1,9 +1,8 @@
 ﻿import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from './store/authStore';
 import { firmAPI, api } from './lib/api';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { createPortal } from 'react-dom';
 import { LoginForm } from './components/LoginForm';
 import { RegisterForm } from './components/RegisterForm';
 import { CaseList } from './components/CaseList';
@@ -560,10 +559,8 @@ function HomePage() {
 function Layout({ children }: { children: React.ReactNode }) {
   const { user, clearAuth } = useAuthStore();
   const [firmName, setFirmName] = useState('Lawravel');
-  const [showDropdown, setShowDropdown] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
-  const buttonRef = useRef<HTMLButtonElement>(null);
   const location = useLocation();
 
   useQuery({
@@ -577,15 +574,6 @@ function Layout({ children }: { children: React.ReactNode }) {
   const handleLogout = () => {
     clearAuth();
     window.location.href = '/login';
-  };
-
-  const getDropdownPosition = () => {
-    if (!buttonRef.current) return {};
-    const rect = buttonRef.current.getBoundingClientRect();
-    return {
-      top: `${rect.bottom + 8}px`,
-      left: `${rect.left}px`,
-    };
   };
 
   const isActive = (path: string) => {
@@ -681,7 +669,7 @@ function Layout({ children }: { children: React.ReactNode }) {
               {(!collapsed || mobile) && (
                 <span className="text-sm font-medium truncate">{link.label}</span>
               )}
-              {('badge' in link) && (link as any).badge}
+              {link.badge}
               {/* Tooltip when collapsed */}
               {collapsed && !mobile && (
                 <span className="absolute left-full ml-3 px-2 py-1 bg-slate-800 text-white text-xs rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap border border-white/10 z-50">
@@ -693,68 +681,89 @@ function Layout({ children }: { children: React.ReactNode }) {
         })}
       </nav>
 
-      {/* Bottom: Branch selector + user */}
-      <div className="border-t border-white/10 px-2 py-3 space-y-2">
+      {/* Bottom: Branch selector + user info + actions */}
+      <div className="border-t border-white/10 px-2 py-3 space-y-0.5">
         {user?.role !== 'PLATFORM_ADMIN' && (
-          <div className={`${collapsed && !mobile ? 'flex justify-center' : ''}`}>
+          <div className={`pb-2 ${collapsed && !mobile ? 'flex justify-center' : ''}`}>
             <BranchSelector />
           </div>
         )}
-        {/* User row */}
-        <div className="relative">
-          <button
-            ref={buttonRef}
-            onClick={() => setShowDropdown(!showDropdown)}
-            className={`w-full flex items-center gap-2.5 px-2 py-2 rounded-lg hover:bg-slate-700/60 transition-colors
-              ${collapsed && !mobile ? 'justify-center' : ''}`}
-          >
+
+        {/* User info chip */}
+        {(!collapsed || mobile) ? (
+          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-700/30 mb-1">
             <div className="w-7 h-7 rounded-full bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 font-bold text-xs shrink-0">
               {user?.firstName?.[0]}{user?.lastName?.[0]}
             </div>
-            {(!collapsed || mobile) && (
-              <div className="flex-1 text-left overflow-hidden">
-                <div className="text-xs font-semibold text-white truncate">{user?.firstName} {user?.lastName}</div>
-                <div className="text-xs text-amber-400 uppercase tracking-wide truncate">{user?.role?.replace(/_/g, ' ')}</div>
-              </div>
-            )}
-            {(!collapsed || mobile) && (
-              <svg className="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            )}
-          </button>
-          {showDropdown && createPortal(
-            <>
-              <div className="fixed inset-0 z-[9998]" onClick={() => setShowDropdown(false)} />
-              <div
-                className="fixed w-48 bg-gradient-to-br from-slate-800 to-slate-900 backdrop-blur-xl rounded-lg shadow-2xl border border-white/10 py-2 z-[9999]"
-                style={getDropdownPosition()}
-              >
-                <a href="/profile" className="block px-4 py-2 text-slate-300 hover:bg-amber-500/20 hover:text-amber-400 transition-colors text-sm">
-                  My Profile
-                </a>
-                {user?.role !== 'PLATFORM_ADMIN' && (
-                  <a href="/billing" className="block px-4 py-2 text-slate-300 hover:bg-amber-500/20 hover:text-amber-400 transition-colors text-sm">
-                    Billing
-                  </a>
-                )}
-                <button
-                  onClick={handleLogout}
-                  className="w-full text-left px-4 py-2 text-slate-300 hover:bg-amber-500/20 hover:text-amber-400 transition-colors text-sm"
-                >
-                  Logout
-                </button>
-              </div>
-            </>,
-            document.body
+            <div className="overflow-hidden">
+              <div className="text-xs font-semibold text-white truncate">{user?.firstName} {user?.lastName}</div>
+              <div className="text-xs text-amber-400 uppercase tracking-wide truncate">{user?.role?.replace(/_/g, ' ')}</div>
+            </div>
+          </div>
+        ) : (
+          <div className="flex justify-center py-1 mb-1">
+            <div className="w-7 h-7 rounded-full bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 font-bold text-xs" title={`${user?.firstName} ${user?.lastName}`}>
+              {user?.firstName?.[0]}{user?.lastName?.[0]}
+            </div>
+          </div>
+        )}
+
+        {/* Profile */}
+        <a
+          href="/profile"
+          onClick={() => mobile && setMobileSidebarOpen(false)}
+          className={`flex items-center gap-3 rounded-lg transition-all duration-150 group relative
+            ${collapsed && !mobile ? 'justify-center px-2 py-2.5' : 'px-3 py-2'}
+            ${isActive('/profile') ? 'bg-amber-500/20 text-amber-400' : 'text-slate-300 hover:bg-slate-700/60 hover:text-white'}`}
+        >
+          <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+          {(!collapsed || mobile) && <span className="text-sm font-medium">My Profile</span>}
+          {collapsed && !mobile && (
+            <span className="absolute left-full ml-3 px-2 py-1 bg-slate-800 text-white text-xs rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap border border-white/10 z-50">My Profile</span>
           )}
-        </div>
+        </a>
+
+        {/* Billing */}
+        {user?.role !== 'PLATFORM_ADMIN' && (
+          <a
+            href="/billing"
+            onClick={() => mobile && setMobileSidebarOpen(false)}
+            className={`flex items-center gap-3 rounded-lg transition-all duration-150 group relative
+              ${collapsed && !mobile ? 'justify-center px-2 py-2.5' : 'px-3 py-2'}
+              ${isActive('/billing') ? 'bg-amber-500/20 text-amber-400' : 'text-slate-300 hover:bg-slate-700/60 hover:text-white'}`}
+          >
+            <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+            </svg>
+            {(!collapsed || mobile) && <span className="text-sm font-medium">Billing</span>}
+            {collapsed && !mobile && (
+              <span className="absolute left-full ml-3 px-2 py-1 bg-slate-800 text-white text-xs rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap border border-white/10 z-50">Billing</span>
+            )}
+          </a>
+        )}
+
+        {/* Logout */}
+        <button
+          onClick={handleLogout}
+          className={`w-full flex items-center gap-3 rounded-lg transition-all duration-150 group relative text-red-400 hover:bg-red-500/10 hover:text-red-300
+            ${collapsed && !mobile ? 'justify-center px-2 py-2.5' : 'px-3 py-2'}`}
+        >
+          <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+          </svg>
+          {(!collapsed || mobile) && <span className="text-sm font-medium">Logout</span>}
+          {collapsed && !mobile && (
+            <span className="absolute left-full ml-3 px-2 py-1 bg-slate-800 text-white text-xs rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap border border-white/10 z-50">Logout</span>
+          )}
+        </button>
       </div>
     </div>
   );
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 overflow-x-hidden">
+    <div className="flex min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
       {/* Background decoration */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 right-0 w-96 h-96 bg-amber-500/5 rounded-full blur-3xl"></div>

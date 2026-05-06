@@ -7,7 +7,7 @@ import { Building2, ChevronDown } from 'lucide-react';
 export function BranchSelector() {
   const [selectedBranchId, setSelectedBranchId] = useState<string>('all');
   const [isOpen, setIsOpen] = useState(false);
-  const [dropdownPos, setDropdownPos] = useState({ top: 0, right: 0 });
+  const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
   const buttonRef = useRef<HTMLButtonElement>(null);
 
   const { data: branches } = useQuery({
@@ -27,9 +27,12 @@ export function BranchSelector() {
   const handleToggle = () => {
     if (!isOpen && buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();
+      // Clamp left so the 256px dropdown stays within the viewport
+      const idealLeft = rect.left;
+      const clampedLeft = Math.max(8, Math.min(idealLeft, window.innerWidth - 272));
       setDropdownPos({
         top: rect.bottom + 8,
-        right: window.innerWidth - rect.right,
+        left: clampedLeft,
       });
     }
     setIsOpen(!isOpen);
@@ -74,7 +77,7 @@ export function BranchSelector() {
           {/* Dropdown rendered at body level to escape nav stacking context */}
           <div
             className="fixed w-64 bg-white border border-gray-200 rounded-md shadow-xl"
-            style={{ top: dropdownPos.top, right: dropdownPos.right, zIndex: 9999 }}
+            style={{ top: dropdownPos.top, left: dropdownPos.left, zIndex: 9999 }}
           >
             <div className="py-1">
               <button
