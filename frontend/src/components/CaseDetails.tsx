@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useParams, Link } from 'react-router-dom';
 import { caseAPI } from '../lib/api';
-import { ArrowLeft, Calendar, FileText, User, Users, Clock } from 'lucide-react';
+import { ArrowLeft, Calendar, FileText, User, Clock } from 'lucide-react';
 import { DeadlineList } from './DeadlineList';
 import { HearingList } from './HearingList';
 import { AssignedLawyers } from './AssignedLawyers';

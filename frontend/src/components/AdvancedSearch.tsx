@@ -131,7 +131,7 @@ export function AdvancedSearch() {
           <button
             type="submit"
             disabled={isLoading}
-            onClick={(e) => {
+            onClick={() => {
               console.log('[SEARCH] Button clicked!');
             }}
             className="px-4 sm:px-6 py-2 bg-blue-900 text-white rounded-lg hover:bg-blue-800 transition disabled:bg-blue-300 flex items-center justify-center gap-2 text-sm sm:text-base whitespace-nowrap"

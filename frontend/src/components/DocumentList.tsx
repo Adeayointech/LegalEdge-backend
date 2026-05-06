@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { documentAPI } from '../lib/api';
-import { Download, FileText, Trash2, Clock, CheckCircle, XCircle, Pencil, X } from 'lucide-react';
+import { Download, FileText, Trash2, Pencil, X } from 'lucide-react';
 
 interface DocumentListProps {
   caseId: string;
@@ -15,13 +15,7 @@ const STATUS_COLORS = {
   REJECTED: 'bg-red-100 text-red-800',
 };
 
-const STATUS_ICONS = {
-  DRAFT: Clock,
-  READY_TO_FILE: CheckCircle,
-  FILED: CheckCircle,
-  SERVED: CheckCircle,
-  REJECTED: XCircle,
-};
+
 
 export function DocumentList({ caseId }: DocumentListProps) {
   const queryClient = useQueryClient();
@@ -182,7 +176,6 @@ export function DocumentList({ caseId }: DocumentListProps) {
       ) : (
         <div className="space-y-3">
           {documents.map((doc: any) => {
-            const StatusIcon = STATUS_ICONS[doc.status as keyof typeof STATUS_ICONS];
             const currentVersion = doc.versions?.[0]?.versionNumber || 1;
             
             return (

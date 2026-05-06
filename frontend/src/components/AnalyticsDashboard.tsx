@@ -288,7 +288,7 @@ export function AnalyticsDashboard() {
                   fill="#8884d8"
                   dataKey="value"
                 >
-                  {caseStatusData.map((entry, index) => (
+                  {caseStatusData.map((_entry: unknown, index: number) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
@@ -309,7 +309,7 @@ export function AnalyticsDashboard() {
                 <YAxis />
                 <Tooltip />
                 <Bar dataKey="value" fill="#3B82F6">
-                  {caseTypeData.map((entry, index) => (
+                  {caseTypeData.map((_entry: unknown, index: number) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Bar>
@@ -352,7 +352,7 @@ export function AnalyticsDashboard() {
                   fill="#8884d8"
                   dataKey="value"
                 >
-                  {documentStatusData.map((entry, index) => (
+                  {documentStatusData.map((_entry: unknown, index: number) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>

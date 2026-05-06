@@ -24,7 +24,6 @@ export function ReminderSettings({ deadlineId, currentSettings, onClose, onUpdat
   const [saving, setSaving] = useState(false);
   const [testingSending, setTestSending] = useState(false);
 
-  const entityType = isHearing ? 'hearing' : 'deadline';
   const entityLabel = isHearing ? 'Hearing' : 'Deadline';
 
   const dayOptions = isHearing
