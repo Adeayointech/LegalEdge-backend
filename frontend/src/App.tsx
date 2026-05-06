@@ -593,8 +593,8 @@ function Layout({ children }: { children: React.ReactNode }) {
 
   const getLinkClass = (path: string) => {
     return isActive(path)
-      ? 'px-4 py-2 bg-amber-500/20 text-amber-400 rounded-lg transition-colors font-medium'
-      : 'px-4 py-2 text-slate-300 hover:bg-amber-500/20 hover:text-amber-400 rounded-lg transition-colors font-medium';
+      ? 'px-2.5 py-1.5 text-sm bg-amber-500/20 text-amber-400 rounded-lg transition-colors font-medium'
+      : 'px-2.5 py-1.5 text-sm text-slate-300 hover:bg-amber-500/20 hover:text-amber-400 rounded-lg transition-colors font-medium';
   };
   
   return (
@@ -608,19 +608,19 @@ function Layout({ children }: { children: React.ReactNode }) {
       <nav className="relative z-10 bg-gradient-to-r from-slate-900/90 to-slate-800/90 backdrop-blur-xl shadow-lg border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-18 items-center">
-            <div className="flex items-center gap-8">
-              <div className="flex items-center gap-3">
-                <div className="bg-gradient-to-br from-amber-400 to-yellow-600 p-2 rounded-lg shadow-lg">
-                  <svg className="w-8 h-8 text-slate-900" fill="currentColor" viewBox="0 0 20 20">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <div className="bg-gradient-to-br from-amber-400 to-yellow-600 p-1.5 rounded-lg shadow-lg shrink-0">
+                  <svg className="w-6 h-6 text-slate-900" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M3 6a3 3 0 013-3h10a1 1 0 01.8 1.6L14.25 8l2.55 3.4A1 1 0 0116 13H6a1 1 0 00-1 1v3a1 1 0 11-2 0V6z" clipRule="evenodd" />
                   </svg>
                 </div>
-                <div>
-                  <h1 className="text-xl font-bold text-white heading-font">{firmName}</h1>
-                  <p className="text-xs text-slate-400">Legal Case Management</p>
+                <div className="hidden sm:block">
+                  <h1 className="text-base font-bold text-white heading-font leading-tight">{firmName}</h1>
+                  <p className="text-xs text-slate-400 hidden lg:block">Legal Case Management</p>
                 </div>
               </div>
-              <div className="hidden md:flex gap-1 ml-4">
+              <div className="hidden md:flex gap-0.5 ml-2">
                 {user?.role === 'PLATFORM_ADMIN' ? (
                   <a href="/platform-admin" className={`${getLinkClass('/platform-admin')} flex items-center`}>
                     Platform Admin<OpenTicketBadge />
@@ -643,7 +643,7 @@ function Layout({ children }: { children: React.ReactNode }) {
                 )}
               </div>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 sm:gap-3">
               {user?.role !== 'PLATFORM_ADMIN' && <BranchSelector />}
               <NotificationBell />
               
@@ -667,15 +667,18 @@ function Layout({ children }: { children: React.ReactNode }) {
                 <button 
                   ref={buttonRef}
                   onClick={() => setShowDropdown(!showDropdown)}
-                  className="relative flex items-center gap-2 px-4 py-2 text-white hover:bg-slate-800 rounded-lg transition-colors"
+                  className="relative flex items-center gap-2 px-3 py-2 text-white hover:bg-slate-800 rounded-lg transition-colors"
                 >
-                  <div className="text-right">
+                  <div className="text-right hidden lg:block">
                     <div className="text-sm font-semibold text-white">
                       {user?.firstName} {user?.lastName}
                     </div>
                     <div className="text-xs text-amber-400 uppercase tracking-wide">{user?.role?.replace('_', ' ')}</div>
                   </div>
-                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="w-8 h-8 rounded-full bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 font-bold text-sm lg:hidden">
+                    {user?.firstName?.[0]}{user?.lastName?.[0]}
+                  </div>
+                  <svg className="w-4 h-4 text-white hidden lg:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
