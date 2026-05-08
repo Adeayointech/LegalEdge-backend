@@ -3,8 +3,6 @@ import axios from 'axios';
 // Force production backend URL
 const API_URL = import.meta.env.VITE_API_URL || 'https://legaledge-backend-production.up.railway.app/api';
 
-console.log('🚀 API_URL configured as:', API_URL);
-
 export const api = axios.create({
   baseURL: API_URL,
   headers: {

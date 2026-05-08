@@ -220,8 +220,7 @@ export function BillingPage() {
           {[
             'Unlimited cases and documents',
             'Unlimited team members',
-            'Deadline & hearing reminders (email + SMS)',
-            'Cloud document storage (Cloudflare R2)',
+            'Deadline & hearing reminders (email)',
             'CSV exports and audit logs',
             'Multi-branch support',
           ].map((f) => (
