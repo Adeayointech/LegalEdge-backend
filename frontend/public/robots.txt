@@ -1,0 +1,17 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /cases
+Disallow: /calendar
+Disallow: /search
+Disallow: /analytics
+Disallow: /users
+Disallow: /branches
+Disallow: /audit-logs
+Disallow: /notifications
+Disallow: /profile
+Disallow: /billing
+Disallow: /support
+Disallow: /admin
+
+Sitemap: https://lawravel.com/sitemap.xml
