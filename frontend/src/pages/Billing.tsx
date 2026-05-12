@@ -20,10 +20,10 @@ interface BillingStatus {
 type PlanKey = 'monthly' | 'quarterly' | 'biannual' | 'annual';
 
 const PLANS: Record<PlanKey, { label: string; price: number; duration: string; perMonth: string; badge: string | null }> = {
-  monthly:   { label: 'Monthly',   price: 30000,  duration: 'month',    perMonth: '₦30,000 / mo',         badge: null },
-  quarterly: { label: 'Quarterly', price: 80000,  duration: '3 months', perMonth: '₦26,667 / mo',         badge: 'Save ₦10,000' },
-  biannual:  { label: '6 Months',  price: 150000, duration: '6 months', perMonth: '₦25,000 / mo',         badge: 'Save ₦30,000' },
-  annual:    { label: 'Yearly',    price: 270000, duration: 'year',     perMonth: '₦22,500 / mo',         badge: 'Best Value' },
+  monthly:   { label: 'Monthly',   price: 20000,  duration: 'month',    perMonth: '₦20,000 / mo',         badge: null },
+  quarterly: { label: 'Quarterly', price: 55000,  duration: '3 months', perMonth: '₦18,333 / mo',         badge: 'Save ₦5,000' },
+  biannual:  { label: '6 Months',  price: 110000, duration: '6 months', perMonth: '₦18,333 / mo',         badge: 'Save ₦10,000' },
+  annual:    { label: 'Yearly',    price: 205000, duration: 'year',     perMonth: '₦17,083 / mo',         badge: 'Best Value' },
 };
 
 function daysUntil(dateStr: string | null): number {
@@ -155,7 +155,7 @@ export function BillingPage() {
           </div>
           <div>
             <p className="text-slate-400">Plan</p>
-            <p className="text-white font-medium">Professional — ₦30,000/month</p>
+            <p className="text-white font-medium">Professional — ₦20,000/month</p>
           </div>
 
           {subscriptionStatus === 'TRIAL' && billing.trialEndsAt && (
