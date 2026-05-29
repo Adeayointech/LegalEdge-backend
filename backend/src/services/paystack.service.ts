@@ -5,10 +5,10 @@ const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY!;
 export type PlanKey = 'monthly' | 'quarterly' | 'biannual' | 'annual';
 
 const PLAN_AMOUNTS: Record<PlanKey, number> = {
-  monthly:   2500000,  // ₦25,000
-  quarterly: 7000000,  // ₦70,000
-  biannual:  13500000, // ₦135,000
-  annual:    25000000, // ₦250,000
+  monthly:   200000,  // ₦2,000 (TEST)
+  quarterly: 200000,  // ₦2,000 (TEST)
+  biannual:  200000,  // ₦2,000 (TEST)
+  annual:    200000,  // ₦2,000 (TEST)
 };
 
 export const getPlanMonths = (plan?: string): number => {

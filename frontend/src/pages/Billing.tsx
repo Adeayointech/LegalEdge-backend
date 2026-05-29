@@ -24,10 +24,10 @@ interface BillingStatus {
 type PlanKey = 'monthly' | 'quarterly' | 'biannual' | 'annual';
 
 const PLANS: Record<PlanKey, { label: string; price: number; duration: string; perMonth: string; badge: string | null }> = {
-  monthly:   { label: 'Monthly',   price: 25000,  duration: 'month',    perMonth: '₦25,000 / mo', badge: null },
-  quarterly: { label: 'Quarterly', price: 70000,  duration: '3 months', perMonth: '₦23,333 / mo', badge: 'Save ₦5,000' },
-  biannual:  { label: '6 Months',  price: 135000, duration: '6 months', perMonth: '₦22,500 / mo', badge: 'Save ₦15,000' },
-  annual:    { label: 'Yearly',    price: 250000, duration: 'year',     perMonth: '₦20,833 / mo', badge: 'Best Value' },
+  monthly:   { label: 'Monthly',   price: 2000,  duration: 'month',    perMonth: '₦2,000 / mo', badge: null },
+  quarterly: { label: 'Quarterly', price: 2000,  duration: '3 months', perMonth: '₦2,000 / mo', badge: 'Save ₦5,000' },
+  biannual:  { label: '6 Months',  price: 2000, duration: '6 months', perMonth: '₦2,000 / mo', badge: 'Save ₦15,000' },
+  annual:    { label: 'Yearly',    price: 2000, duration: 'year',     perMonth: '₦2,000 / mo', badge: 'Best Value' },
 };
 
 const CURRENT_FEATURES: { icon: React.ReactNode; label: string }[] = [
