@@ -976,10 +976,10 @@ Lawravel is priced as a firm-wide subscription in Nigerian Naira (₦):
 
 | Plan | Price | Savings |
 |---|---|---|
-| Monthly | ₦25,000 / month | — |
-| Quarterly (3 months) | ₦70,000 total (₦23,333/mo) | Save ₦5,000 |
-| 6 Months | ₦135,000 total (₦22,500/mo) | Save ₦15,000 |
-| Annual (Yearly) | ₦250,000 total (₦20,833/mo) | **Best Value** — Save ₦50,000 |
+| Monthly | ₦10,500 / month | — |
+| Quarterly (3 months) | ₦30,000 total (₦10,000/mo) | Save ₦1,500 |
+| 6 Months | ₦57,000 total (₦9,500/mo) | Save ₦6,000 |
+| Annual (Yearly) | ₦108,000 total (₦9,000/mo) | **Best Value** — Save ₦18,000 |
 
 All plans include:
 - Unlimited cases and documents
