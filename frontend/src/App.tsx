@@ -28,11 +28,8 @@ import { BillingPage } from './pages/Billing';
 import { SubscriptionBanner } from './components/SubscriptionBanner';
 import { TermsPage } from './pages/Terms';
 import { PrivacyPage } from './pages/Privacy';
-import { useTawkTo } from './hooks/useTawkTo';
 
 function App() {
-  useTawkTo();
-
   return (
     <div className="min-h-screen bg-gray-50">
       <Routes>
