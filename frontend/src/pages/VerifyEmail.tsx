@@ -88,7 +88,7 @@ export function VerifyEmail() {
         {(status === 'expired' || status === 'error') && (
           <>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">
-              {status === 'expired' ? 'Link Expired' : 'Verification Link Issue'}
+              {status === 'expired' ? 'Link Expired' : 'Verify Email'}
             </h1>
             <p className="text-gray-600 mb-6">{message}</p>
 
