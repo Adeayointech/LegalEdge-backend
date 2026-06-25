@@ -129,7 +129,7 @@ export const sendDeadlineReminder = async (
   const urgency = daysUntilDue <= 1 ? 'URGENT' : daysUntilDue <= 3 ? 'HIGH' : 'NORMAL';
   const urgencyColor = urgency === 'URGENT' ? '#EF4444' : urgency === 'HIGH' ? '#F59E0B' : '#3B82F6';
 
-  const subject = `${urgency === 'URGENT' ? '🚨 URGENT: ' : urgency === 'HIGH' ? '⚠️ ' : '📅 '}Deadline Reminder - ${deadline.title}`;
+  const subject = `Deadline Reminder - ${deadline.title}`;
 
   const html = `
     <!DOCTYPE html>
@@ -293,7 +293,7 @@ export const sendCaseAssignmentEmail = async (
   assignedByName: string,
   role?: string
 ): Promise<boolean> => {
-  const subject = `🔔 You've been assigned to a new case - ${caseTitle}`;
+  const subject = `You've been assigned to a new case - ${caseTitle}`;
 
   const html = `
     <!DOCTYPE html>
@@ -394,8 +394,8 @@ export const sendHearingReminder = async (
   recipientName: string,
   daysUntilHearing: number
 ): Promise<boolean> => {
-  const urgencyLevel = daysUntilHearing === 0 ? '🚨 TODAY' : daysUntilHearing === 1 ? '⚠️ TOMORROW' : '📅 UPCOMING';
-  const subject = `${urgencyLevel} - Hearing Reminder: ${hearing.case.title}`;
+  const urgencyLevel = daysUntilHearing === 0 ? 'TODAY' : daysUntilHearing === 1 ? 'TOMORROW' : 'UPCOMING';
+  const subject = `Hearing Reminder - ${hearing.case.title}`;
 
   const html = `
     <!DOCTYPE html>
@@ -423,7 +423,7 @@ export const sendHearingReminder = async (
         <div class="content">
           <p>Hello ${recipientName},</p>
           
-          ${daysUntilHearing === 0 ? '<p class="urgent">⚠️ HEARING TODAY ⚠️</p>' : ''}
+          ${daysUntilHearing === 0 ? '<p class="urgent">HEARING TODAY</p>' : ''}
           
           <p>This is a reminder that you have an upcoming hearing scheduled.</p>
           

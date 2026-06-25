@@ -125,7 +125,7 @@ export const createSupportTicket = async (req: AuthRequest, res: Response) => {
         <body>
           <div class="container">
             <div class="header">
-              <h1 style="margin: 0;">✅ Support Ticket Received</h1>
+              <h1 style="margin: 0;">Support Ticket Received</h1>
             </div>
             <div class="content">
               <p>Hello ${ticket.user.firstName},</p>

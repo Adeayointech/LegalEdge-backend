@@ -19,7 +19,7 @@ export function VerifyEmail() {
     const token = searchParams.get('token');
     if (!token) {
       setStatus('error');
-      setMessage('No verification token found in the link.');
+      setMessage("You haven't verified your email yet. Please check your inbox for the verification link from Lawravel.");
       return;
     }
 

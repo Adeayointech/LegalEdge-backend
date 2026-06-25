@@ -71,7 +71,7 @@ export const createNotification = async (params: CreateNotificationParams) => {
 };
 
 export const sendNotificationEmail = async (notification: any) => {
-  const subject = `🔔 ${notification.title}`;
+  const subject = `${notification.title}`;
   const html = `
     <!DOCTYPE html>
     <html>

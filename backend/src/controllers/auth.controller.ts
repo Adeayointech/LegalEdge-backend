@@ -174,7 +174,7 @@ export const register = async (req: Request, res: Response) => {
       // New firm founder — send full onboarding email with invite code + setup steps
       await sendEmail({
         to: user.email,
-        subject: '🎉 Welcome to Lawravel — Your Firm is Ready',
+        subject: 'Welcome to Lawravel — Your Firm is Ready',
         html: `
           <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#fff;border-radius:10px;overflow:hidden;border:1px solid #e5e7eb;">
             <div style="background:linear-gradient(135deg,#1e3a5f,#2563eb);padding:36px 32px;text-align:center;">
@@ -194,7 +194,6 @@ export const register = async (req: Request, res: Response) => {
               <h3 style="color:#1e3a5f;margin-bottom:12px;">Quick Setup Guide</h3>
               <ol style="padding-left:20px;color:#374151;line-height:2;">
                 <li>Log in at <a href="${frontendUrl}/login" style="color:#2563eb;">${frontendUrl}/login</a></li>
-                <li>Go to <strong>Branches</strong> and create your office locations</li>
                 <li>Share your invite code with team members</li>
                 <li>Approve their registrations under <strong>User Management</strong></li>
                 <li>Add your first client and open a case</li>

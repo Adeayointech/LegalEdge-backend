@@ -170,17 +170,6 @@ export function ReminderSettings({ deadlineId, currentSettings, onClose, onUpdat
             </div>
           )}
 
-          {/* Test Reminder Button */}
-          {reminderEnabled && (
-            <button
-              onClick={handleTestReminder}
-              disabled={testingSending}
-              className="w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition disabled:bg-gray-50 disabled:text-gray-400 flex items-center justify-center gap-2"
-            >
-              <Mail className="w-4 h-4" />
-              {testingSending ? 'Sending...' : 'Send Test Reminder'}
-            </button>
-          )}
         </div>
 
         <div className="flex gap-3 px-6 py-4 bg-gray-50 rounded-b-lg flex-shrink-0 border-t border-gray-200">

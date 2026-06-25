@@ -137,7 +137,7 @@ export function RegisterForm() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
-                <h3 className="text-2xl font-bold text-white mb-3">Registration Successful! ⏳</h3>
+                <h3 className="text-2xl font-bold text-white mb-3">Registration Successful!</h3>
                 <div className="text-left space-y-3">
                   <p className="text-slate-300">
                     Your account has been created and is <strong className="text-orange-400">pending admin approval</strong>.
@@ -159,7 +159,7 @@ export function RegisterForm() {
                     </ol>
                   </div>
                   <p className="text-sm text-slate-500 mt-4">
-                    💡 <strong>Tip:</strong> Contact your firm administrator to expedite the approval process.
+                    <strong>Tip:</strong> Contact your firm administrator to expedite the approval process.
                   </p>
                 </div>
                 <button
@@ -176,12 +176,15 @@ export function RegisterForm() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l9 6 9-6M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>
                 </div>
-                <h3 className="text-2xl font-bold text-white mb-3">Check Your Email 📩</h3>
+                <h3 className="text-2xl font-bold text-white mb-3">Check Your Email</h3>
                 <p className="text-slate-300 mb-2">
                   Registration successful. We sent a verification link to your email address.
                 </p>
+                <p className="text-slate-300 font-semibold text-amber-300 mb-2">
+                  Please verify your email before your first login.
+                </p>
                 <p className="text-slate-300">
-                  Verify your email first, then return to login.
+                  Check your inbox for the verification link.
                 </p>
                 <button
                   onClick={() => navigate('/login')}
@@ -198,7 +201,7 @@ export function RegisterForm() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
-                <h3 className="text-2xl font-bold text-white mb-3">Firm Created Successfully! 🎉</h3>
+                <h3 className="text-2xl font-bold text-white mb-3">Firm Created Successfully!</h3>
                 <p className="text-slate-300 mb-4">
                   Your firm code is:
                 </p>
@@ -206,7 +209,7 @@ export function RegisterForm() {
                   <code className="text-4xl font-mono font-bold bg-gradient-to-r from-amber-400 to-yellow-500 bg-clip-text text-transparent">{generatedFirmCode}</code>
                 </div>
                 <p className="text-slate-300 mb-2">
-                  ⚠️ <strong className="text-amber-400">Save this code!</strong> Share it with team members to invite them to your firm.
+                  <strong className="text-amber-400">Save this code!</strong> Share it with team members to invite them to your firm.
                 </p>
                 <p className="text-slate-300 mb-2">
                   We also sent an email verification link. Verify your email before your first login.
