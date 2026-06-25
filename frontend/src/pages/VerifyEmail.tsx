@@ -87,15 +87,8 @@ export function VerifyEmail() {
 
         {(status === 'expired' || status === 'error') && (
           <>
-            <div className="flex justify-center mb-4">
-              <div className="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center">
-                <svg className="w-8 h-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </div>
-            </div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">
-              {status === 'expired' ? 'Link expired' : 'Verification failed'}
+              {status === 'expired' ? 'Link Expired' : 'Verification Link Issue'}
             </h1>
             <p className="text-gray-600 mb-6">{message}</p>
 
@@ -103,8 +96,8 @@ export function VerifyEmail() {
               <>
                 <p className="text-sm text-gray-500 mb-3">
                   {status === 'expired'
-                    ? 'Enter your email to get a new verification link.'
-                    : 'If you need a new link, enter your email below.'}
+                    ? 'Please enter your email to receive a new verification link.'
+                    : 'Please enter your email and we'll send you a new verification link.'}
                 </p>
                 <form onSubmit={handleResend} className="space-y-3">
                   <input
