@@ -589,7 +589,8 @@ function HomePage() {
             </div>
           </div>
           <div className="border-t border-white/10 pt-8 text-center text-slate-500 text-sm">
-            Â© 2026 Lawravel. All rights reserved. Empowering legal excellence worldwide.
+            <p>© 2026 Lawravel. All rights reserved. Empowering legal excellence worldwide.</p>
+            <p className="mt-2 text-xs text-slate-600">Powered by <span className="text-amber-400/60">nexarflux</span></p>
           </div>
         </div>
       </footer>
