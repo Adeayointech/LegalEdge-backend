@@ -97,7 +97,7 @@ export function VerifyEmail() {
                 <p className="text-sm text-gray-500 mb-3">
                   {status === 'expired'
                     ? 'Please enter your email to receive a new verification link.'
-                    : 'Please enter your email and we'll send you a new verification link.'}
+                    : "Please enter your email and we'll send you a new verification link."}
                 </p>
                 <form onSubmit={handleResend} className="space-y-3">
                   <input
